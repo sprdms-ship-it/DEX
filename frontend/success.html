@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Logging in...</title>
+</head>
+<body>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("token", token);
+
+      const payload = JSON.parse(atob(token.split(".")[1]));
+
+      if (payload.role === "admin") {
+        window.location.replace("/admin.html");
+      } else {
+        window.location.replace("/dashboard.html");
+      }
+    } else {
+      window.location.replace("/index.html");
+    }
+  </script>
+</body>
+</html>

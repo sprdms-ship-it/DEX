@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONE SPR FTP DEX — Sign In</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="auth-page">
+
+    <!-- BRAND -->
+    <div class="auth-brand-header">
+        <div class="auth-brand-icon">
+            <img src="1spr.png" alt="Logo" style="width:100px; height:38px; object-fit:contain;" />
+            <!-- <svg viewBox="0 0 24 24" fill="none"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="#c9a54e"/></svg> -->
+        </div>
+        <div class="auth-brand-text">
+            <span class="name">ONE SPR FTP DEX</span>
+        </div>
+    </div>
+
+    <!-- CARD -->
+    <div class="auth-card">
+
+        <h1 class="auth-card-title">Sign in</h1>
+        <p class="auth-card-subtitle">Choose how you'd like to access your account</p>
+
+        <!-- TOGGLE -->
+        <div class="auth-toggle">
+            <button class="auth-toggle-btn active" onclick="switchTab('sso')">SSO</button>
+            <button class="auth-toggle-btn" onclick="switchTab('email')">Email Login</button>
+        </div>
+
+        <!-- SSO PANEL -->
+        <div id="ssoPanel" class="auth-panel active">
+            <div class="sso-list">
+
+                <button class="sso-btn" onclick="googleLogin()">
+                    <div class="sso-icon google">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                    </div>
+                    <div class="sso-info">
+                        <div class="sso-title">Shrirampistons Users</div>
+                        <div class="sso-domain">Google Workspace &bull; @shrirampistons.com</div>
+                    </div>
+                    <svg class="sso-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+
+                <button class="sso-btn" onclick="msLogin()">
+                    <div class="sso-icon microsoft">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+                            <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+                            <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+                            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+                        </svg>
+                    </div>
+                    <div class="sso-info">
+                        <div class="sso-title">Sprautotech Users</div>
+                        <div class="sso-domain">Microsoft 365 &bull; @sprautotech.com, @sprautotech.in</div>
+                    </div>
+                    <svg class="sso-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+
+            </div>
+            <div class="sso-note">Domain users are auto-provisioned on first sign in</div>
+        </div>
+
+        <!-- EMAIL PANEL -->
+        <div id="emailPanel" class="auth-panel">
+
+            <div id="emailStep">
+                <div class="form-group">
+                    <label class="form-label">Email address</label>
+                    <input type="email" id="email" class="form-input" placeholder="you@company.com"
+                           onkeydown="if(event.key==='Enter') checkUser()" />
+                </div>
+                <button class="btn btn-primary" onclick="checkUser()">Continue</button>
+            </div>
+
+            <div id="passwordStep" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="emailDisplay" class="form-input" disabled />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password"
+                           onkeydown="if(event.key==='Enter') login()" />
+                </div>
+                <button class="btn btn-primary" onclick="login()">Sign In</button>
+                <p style="text-align:center; margin-top:14px;">
+                    <a href="#" class="link" onclick="backToEmail()" style="font-size:13px;">← Use a different email</a>
+                </p>
+            </div>
+
+        </div>
+
+        <!-- MESSAGE -->
+        <div id="message" class="auth-message"></div>
+
+        <!-- FOOTER -->
+        <p class="auth-footer">
+            Don't have an account? <a href="signup.html" class="link">Create one</a>
+        </p>
+    </div>
+
+    <p class="auth-page-footer">Secured by SPR Group &bull; Enterprise File Portal</p>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+var API = "http://localhost:3000/auth";
+
+function showToast(msg, type) {
+    type = type || 'info';
+    var c = document.getElementById('toastContainer');
+    var t = document.createElement('div');
+    t.className = 'toast ' + type; t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(function() { t.remove(); }, 3000);
+}
+
+function showMessage(msg, type) {
+    var el = document.getElementById('message');
+    el.textContent = msg;
+    el.className = 'auth-message ' + (type || 'error');
+}
+
+function clearMessage() {
+    var el = document.getElementById('message');
+    el.className = 'auth-message'; el.textContent = '';
+}
+
+function switchTab(tab) {
+    var btns = document.querySelectorAll('.auth-toggle-btn');
+    btns[0].classList.toggle('active', tab === 'sso');
+    btns[1].classList.toggle('active', tab === 'email');
+    document.getElementById('ssoPanel').classList.toggle('active', tab === 'sso');
+    document.getElementById('emailPanel').classList.toggle('active', tab === 'email');
+    clearMessage();
+}
+
+function backToEmail() {
+    document.getElementById('emailStep').style.display = 'block';
+    document.getElementById('passwordStep').style.display = 'none';
+    clearMessage();
+}
+
+async function checkUser() {
+    var email = document.getElementById('email').value.trim();
+    if (!email) { showMessage('Please enter your email address'); return; }
+    clearMessage();
+    try {
+        var res = await fetch(API + '/check-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+        var data = await res.json();
+        if (data.status === 'existing_user') {
+            document.getElementById('emailStep').style.display = 'none';
+            document.getElementById('passwordStep').style.display = 'block';
+            document.getElementById('emailDisplay').value = email;
+            document.getElementById('password').focus();
+        } else if (data.status === 'new_user') {
+            localStorage.setItem('signup_email', email);
+            window.location.href = 'signup.html';
+        } else if (data.status === 'invalid_domain') {
+            showMessage('This domain is not allowed. Contact your administrator.');
+        } else if (data.status === 'not_allowed') {
+            showMessage('Your email is not authorized. Contact admin to request access.');
+        }
+    } catch (err) { showMessage('Connection error. Please try again.'); }
+}
+
+async function login() {
+    var email = document.getElementById('emailDisplay').value;
+    var password = document.getElementById('password').value;
+    if (!password) { showMessage('Please enter your password'); return; }
+    clearMessage();
+    try {
+        var res = await fetch(API + '/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password })
+        });
+        var data = await res.json();
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+            var payload = JSON.parse(atob(data.token.split('.')[1]));
+            window.location.replace(payload.role === 'admin' ? 'admin.html' : 'dashboard.html');
+        } else { showMessage(data.message || 'Login failed'); }
+    } catch (err) { showMessage('Connection error. Please try again.'); }
+}
+
+function googleLogin() { window.location.href = 'http://localhost:3000/auth/google'; }
+function msLogin() { window.location.href = 'http://localhost:3000/auth/microsoft'; }
+
+var existingToken = localStorage.getItem('token');
+if (existingToken) {
+    try {
+        var p = JSON.parse(atob(existingToken.split('.')[1]));
+        if (p.exp * 1000 > Date.now()) {
+            window.location.replace(p.role === 'admin' ? 'admin.html' : 'dashboard.html');
+        } else { localStorage.removeItem('token'); }
+    } catch (e) { localStorage.removeItem('token'); }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "FTP Application",
+            "database": "group_apps_spr",
+            "username": "Aritra_user"
+        }
+    ]
+}

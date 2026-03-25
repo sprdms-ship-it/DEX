@@ -1,0 +1,413 @@
+/* ─── ADMIN TAB BAR ─── */
+.admin-tab-bar {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    padding: 3px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    max-width: 480px;
+}
+
+.admin-tab {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.admin-tab.active {
+    background: var(--bg-card);
+    color: var(--text-dark);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-tab:hover:not(.active) { color: var(--text-body); }
+
+/* ─── ADMIN PANELS ─── */
+.admin-panel { display: none; animation: panelFade 0.2s ease; }
+.admin-panel.active { display: block; }
+
+/* ─── STATS GRID ─── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+/* ─── USER TABLE ─── */
+.user-table-wrap {
+    overflow-x: auto;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.user-table thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.user-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.user-table tbody tr:hover {
+    background: var(--bg-surface);
+}
+
+.user-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-body);
+    vertical-align: middle;
+}
+
+.user-table .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.user-cell-name {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.user-cell-email {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.user-table .storage-bar-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.storage-bar-track {
+    width: 60px;
+    height: 4px;
+    background: var(--bg-input);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.storage-bar-track .fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 0.3s ease;
+}
+
+.view-detail-btn {
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+}
+
+.view-detail-btn:hover {
+    background: var(--accent-soft);
+}
+
+/* ─── USER DETAIL MODAL ─── */
+.user-detail-modal {
+    width: 640px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.detail-user-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+}
+
+.detail-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.detail-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.detail-email {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.detail-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Detail stats row */
+.detail-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.detail-stat {
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+}
+
+.detail-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    font-family: var(--font-heading);
+}
+
+.detail-stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+/* Detail tabs */
+.detail-tab-bar {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    margin-bottom: 14px;
+}
+
+.detail-tab {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+
+.detail-tab.active {
+    background: var(--bg-card);
+    color: var(--text-dark);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.detail-panel { display: none; }
+.detail-panel.active { display: block; animation: panelFade 0.15s ease; }
+
+/* Detail file list */
+.detail-file-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.detail-file-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+
+.detail-file-row:last-child { border-bottom: none; }
+
+.detail-file-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: var(--bg-surface);
+}
+
+.detail-file-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.detail-file-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.detail-file-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.detail-file-badge.viewer { background: var(--accent-soft); color: var(--accent); }
+.detail-file-badge.editor { background: var(--success-soft); color: var(--success); }
+
+.detail-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* ─── MANAGE FILES TAB ─── */
+.manage-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.manage-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.manage-row .form-input {
+    font-size: 13px;
+    padding: 9px 12px;
+}
+
+.manage-file-row {
+    cursor: default;
+}
+
+.admin-del-btn {
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    color: var(--danger);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.admin-del-btn:hover {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+}
+
+.admin-browse-bc {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0;
+    flex-wrap: wrap;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .detail-stats { grid-template-columns: repeat(2, 1fr); }
+    .user-detail-modal { width: 95vw; }
+    .admin-tab-bar { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .detail-stats { grid-template-columns: 1fr 1fr; }
+}

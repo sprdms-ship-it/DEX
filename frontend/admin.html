@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONE SPR FTP DEX — Admin Panel</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="app-header">
+    <div class="app-brand">
+        <div class="app-brand-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="#c9a54e"/></svg>
+        </div>
+        <div class="app-brand-text"><span class="name">ONE SPR FTP DEX</span></div>
+    </div>
+    <div class="header-actions">
+        <span class="user-badge" id="userBadge">Admin</span>
+        <button class="btn btn-sm" onclick="window.location.href='dashboard.html'">My Bucket</button>
+        <button class="btn btn-sm" onclick="logout()">Sign Out</button>
+    </div>
+</div>
+
+<div class="app-container">
+
+    <div class="page-header">
+        <h1 class="page-title">Admin Panel</h1>
+        <p class="page-subtitle">Manage domains, users and monitor storage across the portal</p>
+    </div>
+
+    <div class="admin-tab-bar">
+        <button class="admin-tab active" data-tab="domains" onclick="switchAdminTab('domains')">Domains</button>
+        <button class="admin-tab" data-tab="users" onclick="switchAdminTab('users')">Allowed Users</button>
+        <button class="admin-tab" data-tab="analytics" onclick="switchAdminTab('analytics')">User Analytics</button>
+    </div>
+
+    <div class="admin-panel active" id="tab-domains">
+        <div class="admin-section">
+            <h3>Manage Domains</h3>
+            <div class="admin-input-row">
+                <input type="text" id="domainInput" class="form-input" placeholder="example.com" onkeydown="if(event.key==='Enter') addDomain()" />
+                <button class="btn btn-primary" style="width:auto; padding:10px 24px;" onclick="addDomain()">Add Domain</button>
+            </div>
+            <ul class="admin-list" id="domainList"></ul>
+        </div>
+    </div>
+
+    <div class="admin-panel" id="tab-users">
+        <div class="admin-section">
+            <h3>Manage Allowed Users</h3>
+            <div class="admin-input-row">
+                <input type="email" id="userEmail" class="form-input" placeholder="user@example.com" onkeydown="if(event.key==='Enter') addUser()" />
+                <button class="btn btn-primary" style="width:auto; padding:10px 24px;" onclick="addUser()">Add User</button>
+            </div>
+            <ul class="admin-list" id="userList"></ul>
+        </div>
+    </div>
+
+    <div class="admin-panel" id="tab-analytics">
+        <div class="stats-grid" id="overviewStats">
+            <div class="stat-card"><div class="stat-value" id="statTotalUsers">—</div><div class="stat-label">Registered Users</div></div>
+            <div class="stat-card"><div class="stat-value" id="statTotalFiles">—</div><div class="stat-label">Total Files</div></div>
+            <div class="stat-card"><div class="stat-value" id="statTotalFolders">—</div><div class="stat-label">Total Folders</div></div>
+            <div class="stat-card"><div class="stat-value" id="statTotalStorage">—</div><div class="stat-label">Storage Used</div></div>
+        </div>
+        <div class="admin-section" style="margin-top:20px;">
+            <h3>All Registered Users</h3>
+            <div class="user-table-wrap">
+                <table class="user-table" id="userAnalyticsTable">
+                    <thead><tr><th>User</th><th>Domain</th><th>Files</th><th>Folders</th><th>Storage</th><th>Joined</th><th></th></tr></thead>
+                    <tbody id="userAnalyticsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content" style="width:400px; text-align:center;">
+        <p id="confirmText" style="font-size:15px; margin-bottom:24px; color:var(--text-dark);"></p>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button class="btn btn-danger" id="confirmYes">Yes, Delete</button>
+            <button class="btn" onclick="closeConfirmModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- USER DETAIL MODAL -->
+<div id="userDetailModal" class="modal" onclick="if(event.target===this) closeUserDetail()">
+    <div class="modal-content user-detail-modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 id="detailUserName">User Details</h3>
+            <button class="btn-icon" onclick="closeUserDetail()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+
+        <div class="detail-user-info" id="detailUserInfo"></div>
+        <div class="detail-stats" id="detailStats"></div>
+
+        <!-- 4 tabs now -->
+        <div class="detail-tab-bar">
+            <button class="detail-tab active" onclick="switchDetailTab('owned')">Owned Files</button>
+            <button class="detail-tab" onclick="switchDetailTab('shared-with')">Shared With</button>
+            <button class="detail-tab" onclick="switchDetailTab('shared-by')">Shared By</button>
+            <button class="detail-tab" onclick="switchDetailTab('manage')">Manage Files</button>
+        </div>
+
+        <div class="detail-panel active" id="detail-owned">
+            <div class="detail-file-list" id="detailOwnedList"></div>
+        </div>
+        <div class="detail-panel" id="detail-shared-with">
+            <div class="detail-file-list" id="detailSharedWithList"></div>
+        </div>
+        <div class="detail-panel" id="detail-shared-by">
+            <div class="detail-file-list" id="detailSharedByList"></div>
+        </div>
+        <div class="detail-panel" id="detail-manage">
+            <!-- Admin actions for this user -->
+            <div class="manage-actions">
+                <div class="manage-row">
+                    <input type="text" id="adminFolderName" class="form-input" placeholder="New folder name" style="flex:1;" />
+                    <button class="btn btn-sm" onclick="adminCreateFolder()">Create Folder</button>
+                </div>
+                <div class="manage-row">
+                    <input type="file" id="adminFileInput" style="flex:1; font-size:13px;" />
+                    <button class="btn btn-sm" onclick="adminUploadFile()">Upload File</button>
+                </div>
+            </div>
+            <div style="margin-top:14px; font-size:12px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+                User's Files & Folders (click folder to browse)
+            </div>
+            <!-- Breadcrumb for admin browsing -->
+            <div class="admin-browse-bc" id="adminBrowseBc" style="display:none;"></div>
+            <div class="detail-file-list" id="adminFilesList"></div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/admin.js"></script>
+</body>
+</html>

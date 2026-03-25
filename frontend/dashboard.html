@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONE SPR FTP DEX — My Bucket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="dashboard-body">
+
+<div class="app-header">
+    <div class="app-brand">
+        <div class="app-brand-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="#c9a54e"/></svg>
+        </div>
+        <div class="app-brand-text"><span class="name">ONE SPR FTP DEX</span></div>
+    </div>
+    <div class="header-actions">
+        <span class="user-badge" id="userBadge"></span>
+        <button class="btn btn-sm" onclick="logout()">Sign Out</button>
+    </div>
+</div>
+
+<div class="dash-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-inner">
+            <div class="new-btn-container">
+                <button class="sidebar-new-btn" id="newMenuBtn" onclick="toggleNewMenu()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                    </svg>
+                    New
+                </button>
+            <div class="new-menu" id="newMenu">
+                <button class="new-menu-item" onclick="createFolder(); closeNewMenu();">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1.5"/></svg>
+                    New folder
+                </button>
+                <div class="new-menu-divider"></div>
+                <button class="new-menu-item" onclick="document.getElementById('fileInput').click(); closeNewMenu();">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    File upload
+                </button>
+            </div>
+            <input type="file" id="fileInput" multiple style="display:none;" onchange="uploadFile()" />
+
+            <nav class="sidebar-nav">
+                <a class="sidebar-link active" data-tab="drive" onclick="switchDriveTab('drive')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    My Bucket
+                </a>
+                <a class="sidebar-link" data-tab="shared" onclick="switchDriveTab('shared')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Shared with me
+                </a>
+                <a class="sidebar-link" data-tab="recent" onclick="switchDriveTab('recent')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Recent
+                </a>
+            </nav>
+
+            <div class="sidebar-storage">
+                <div class="storage-label">Storage used</div>
+                <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
+                <div class="storage-text" id="storageText">Calculating...</div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="dash-main">
+
+        <div class="dash-topbar">
+            <div class="topbar-left">
+                <h2 class="dash-page-title" id="pageTitle">My Bucket</h2>
+                <div class="breadcrumb" id="breadcrumb" style="display:none;"></div>
+            </div>
+            <div class="topbar-actions">
+                <div class="view-toggle">
+                    <button class="view-btn" id="viewList" onclick="setView('list')" title="List view">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
+                    <button class="view-btn active" id="viewGrid" onclick="setView('grid')" title="Grid view">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+                    <button class="filter-btn" data-filter="folder" onclick="setFilter('folder')">Folders</button>
+                    <button class="filter-btn" data-filter="file" onclick="setFilter('file')">Files</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-sm" onclick="goBack()" id="backBtn" style="display:none; margin-bottom:12px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="margin-right:4px;"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+        </button>
+
+        <!-- LIST VIEW HEADER (only visible in list mode) -->
+        <div class="list-header" id="listHeader" style="display:none;">
+            <div class="list-col-name">Name</div>
+            <div class="list-col-date">Modified</div>
+            <div class="list-col-size">Size</div>
+            <div class="list-col-actions"></div>
+        </div>
+
+        <div id="fileContainer" class="file-grid"></div>
+    </main>
+
+</div>
+
+<div id="shareModal" class="modal" onclick="closeShareModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 id="shareFileName">Share</h3>
+            <button class="btn-icon" onclick="closeShareModal()" title="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+        <label class="form-label">Add people</label>
+        <div class="share-input-row">
+            <input type="email" id="shareEmail" class="form-input" placeholder="Enter email address" />
+            <select id="shareRole" class="form-input" style="width:auto; min-width:100px;">
+                <option value="viewer">Viewer</option>
+                <option value="editor">Editor</option>
+            </select>
+            <button class="btn btn-primary btn-sm" style="width:auto;" onclick="shareWithUser()">Add</button>
+        </div>
+        <hr />
+        <label class="form-label">General access</label>
+        <select id="generalAccess" class="form-input" onchange="updateGeneralAccess()" style="margin-bottom:12px;">
+            <option value="restricted">Restricted — Only people with access</option>
+            <option value="domain">Your domain — Everyone in your organization</option>
+            <option value="link">Anyone with the link</option>
+        </select>
+        <div id="shareLinkSection" style="display:none; margin-bottom:12px;">
+            <div class="share-input-row">
+                <input type="text" id="shareLinkDisplay" class="form-input" readonly style="font-size:12px; font-family:var(--font-mono);" />
+                <button class="btn btn-sm" onclick="copyLink()">Copy</button>
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn" onclick="closeShareModal()">Done</button></div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
