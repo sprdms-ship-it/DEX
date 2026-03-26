@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api/files";
+const API = "/api/files";
 
 const urlParams = new URLSearchParams(window.location.search);
 const tokenFromSSO = urlParams.get("token");
@@ -342,7 +342,7 @@ function createCard(item) {
 // ─── STORAGE ───
 function updateStorage() {
     let total = 0;
-    allFiles.forEach(f => { if (f.size) total += parseInt(f.size) || 0; });
+    allFiles.forEach(f => { if (f.size) total += f.size; });
     const max = 500 * 1024 * 1024;
     const pct = Math.min((total / max) * 100, 100);
     const fill = document.getElementById('storageFill');
@@ -356,10 +356,18 @@ async function downloadFile(item) {
     try {
         const res = await fetch(`${API}/${item.id}/download`, { headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) throw new Error();
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = item.name; a.click();
-        window.URL.revokeObjectURL(url);
+        const data = await res.json();
+        if (data.downloadUrl) {
+            const a = document.createElement('a');
+            a.href = data.downloadUrl;
+            a.download = data.name || item.name;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else {
+            throw new Error('No download URL');
+        }
     } catch (err) { showToast("Download failed", "error"); }
 }
 

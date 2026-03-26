@@ -13,11 +13,11 @@
     <!-- BRAND -->
     <div class="auth-brand-header">
         <div class="auth-brand-icon">
-            <img src="1spr.png" alt="Logo" style="width:100px; height:38px; object-fit:contain;" />
-            <!-- <svg viewBox="0 0 24 24" fill="none"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="#c9a54e"/></svg> -->
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="#c9a54e"/></svg>
         </div>
         <div class="auth-brand-text">
-            <span class="name">ONE SPR FTP DEX</span>
+            <span class="prefix">ONE SPR</span>
+            <span class="name">FTP DEX</span>
         </div>
     </div>
 
@@ -118,7 +118,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-var API = "http://localhost:3000/auth";
+var API = "/auth";
 
 function showToast(msg, type) {
     type = type || 'info';
@@ -202,8 +202,8 @@ async function login() {
     } catch (err) { showMessage('Connection error. Please try again.'); }
 }
 
-function googleLogin() { window.location.href = 'http://localhost:3000/auth/google'; }
-function msLogin() { window.location.href = 'http://localhost:3000/auth/microsoft'; }
+function googleLogin() { window.location.href = '/auth/google'; }
+function msLogin() { window.location.href = '/auth/microsoft'; }
 
 var existingToken = localStorage.getItem('token');
 if (existingToken) {

@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api/admin";
+const API = "/api/admin";
 const token = localStorage.getItem("token");
 
 if (!token) { window.location.replace("index.html"); }
@@ -136,14 +136,7 @@ async function fetchRegisteredUsers() {
         if (!res.ok) throw new Error();
         const users = await res.json();
         let totalFiles = 0, totalFolders = 0, totalStorage = 0;
-        users.forEach(u => {
-            u.file_count = parseInt(u.file_count) || 0;
-            u.folder_count = parseInt(u.folder_count) || 0;
-            u.storage_used = parseInt(u.storage_used) || 0;
-            totalFiles += u.file_count;
-            totalFolders += u.folder_count;
-            totalStorage += u.storage_used;
-        });
+        users.forEach(u => { totalFiles += u.file_count; totalFolders += u.folder_count; totalStorage += u.storage_used; });
         document.getElementById('statTotalUsers').textContent = users.length;
         document.getElementById('statTotalFiles').textContent = totalFiles;
         document.getElementById('statTotalFolders').textContent = totalFolders;

@@ -12,13 +12,16 @@ const pool = new Pool(
               }
           }
         : {
-              host: process.env.PG_HOST || 'localhost',
-              port: process.env.PG_PORT || 5432,
-              database: process.env.PG_DATABASE || 'group_apps_spr',
-              user: process.env.PG_USER || 'Aritra_user',
-              password: process.env.PG_PASSWORD || '',
-              options: `-c search_path=${process.env.SCHEMA || 'ftp_app'},public`
-          }
+            host: process.env.PG_HOST || 'localhost',
+            port: process.env.PG_PORT || 5432,
+            database: process.env.PG_DATABASE || 'group_apps_spr',
+            user: process.env.PG_USER || 'Aritra_user',
+            password: process.env.PG_PASSWORD || '',
+            options: `-c search_path=${process.env.PG_SCHEMA || 'ftp_app'},public`,
+            ssl: process.env.PG_HOST && process.env.PG_HOST !== 'localhost'
+                ? { rejectUnauthorized: false }
+                : false
+  }
 );
 
 pool.on('connect', () => {
