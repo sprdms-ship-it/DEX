@@ -1,36 +1,50 @@
 const { Pool } = require('pg');
+const { Connector, IpAddressTypes } = require('@google-cloud/cloud-sql-connector');
+const { GoogleAuth } = require('google-auth-library');
 
-// ✅ Use DATABASE_URL if available (Render / Production)
-// ✅ Otherwise fallback to local config (Development)
+// ════════════════════════════════════
+// CLOUD SQL CONNECTOR SETUP
+// ════════════════════════════════════
 
-const pool = new Pool(
-    process.env.DATABASE_URL
-        ? {
-              connectionString: process.env.DATABASE_URL,
-              ssl: {
-                  rejectUnauthorized: false
-              }
-          }
-        : {
-            host: process.env.PG_HOST || 'localhost',
-            port: process.env.PG_PORT || 5432,
-            database: process.env.PG_DATABASE || 'group_apps_spr',
-            user: process.env.PG_USER || 'Aritra_user',
-            password: process.env.PG_PASSWORD || '',
-            options: `-c search_path=${process.env.PG_SCHEMA || 'ftp_app'},public`,
-            ssl: process.env.PG_HOST && process.env.PG_HOST !== 'localhost'
-                ? { rejectUnauthorized: false }
-                : false
-  }
-);
+let pool;
 
-pool.on('connect', () => {
-    console.log('✅ Connected to PostgreSQL database');
-});
+async function createPool() {
+    // ─── Load service account credentials from Base64 env var ───
+    const credentialsJSON = JSON.parse(
+        Buffer.from(process.env.GCS_CREDENTIALS_BASE64, 'base64').toString('utf-8')
+    );
 
-pool.on('error', (err) => {
-    console.error('❌ PostgreSQL pool error:', err.message);
-});
+    const auth = new GoogleAuth({
+        credentials: credentialsJSON,
+        scopes: ['https://www.googleapis.com/auth/cloud-platform']
+    });
+
+    const connector = new Connector({ auth });
+
+    const clientOpts = await connector.getOptions({
+        instanceConnectionName: process.env.CLOUD_SQL_INSTANCE,   // e.g. spr-group-apps:asia-south1:spr-groupapps-pg
+        ipType: IpAddressTypes.PUBLIC,
+    });
+
+    pool = new Pool({
+        ...clientOpts,
+        user: process.env.PG_USER,
+        password: process.env.PG_PASSWORD,
+        database: process.env.PG_DATABASE,
+        options: `-c search_path=${process.env.PG_SCHEMA || 'ftp_app'},public`,
+        max: 5,
+    });
+
+    pool.on('connect', () => {
+        console.log('✅ Connected to Cloud SQL via Connector');
+    });
+
+    pool.on('error', (err) => {
+        console.error('❌ PostgreSQL pool error:', err.message);
+    });
+
+    return pool;
+}
 
 // ════════════════════════════════════
 // SQLite → PostgreSQL COMPATIBILITY
@@ -65,8 +79,17 @@ function prepareQuery(sql, params = []) {
     return { sql: result, params: newParams };
 }
 
-// ─── getAsync ───
+// ════════════════════════════════════
+// DB INTERFACE
+// ════════════════════════════════════
+
 const db = {};
+
+// Called once from server.js before anything else
+db.init = async function () {
+    pool = await createPool();
+    db.pool = pool;
+};
 
 db.getAsync = async function (sql, params = []) {
     const q = prepareQuery(sql, params);
@@ -74,24 +97,19 @@ db.getAsync = async function (sql, params = []) {
     return result.rows[0] || null;
 };
 
-// ─── allAsync ───
 db.allAsync = async function (sql, params = []) {
     const q = prepareQuery(sql, params);
     const result = await pool.query(q.sql, q.params);
     return result.rows;
 };
 
-// ─── runAsync ───
 db.runAsync = async function (sql, params = []) {
     const q = prepareQuery(sql, params);
     const result = await pool.query(q.sql, q.params);
-
     return {
         lastID: result.rows[0]?.id || null,
         changes: result.rowCount || 0
     };
 };
-
-db.pool = pool;
 
 module.exports = db;

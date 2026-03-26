@@ -3,13 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const session = require('express-session');
-const passport = require('./config/passport');
+const db = require('./config/db');
 const initDB = require('./models/initDB');
 
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
 
-// Trust Render's proxy (required for secure cookies + correct req.protocol)
 if (isProd) {
     app.set('trust proxy', 1);
 }
@@ -29,43 +28,57 @@ app.use(session({
     }
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-const authRoutes = require('./routes/authRoutes');
-const fileRoutes = require('./routes/fileRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-
-app.use('/auth', authRoutes);
-app.use('/api/files', fileRoutes);
-app.use('/api/admin', adminRoutes);
-
-app.use(express.static(path.join(__dirname, '../frontend')));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
-
-// Health check for Render
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ message: 'Internal server error' });
-});
-
+// ─── Routes (loaded after db.init) ───
 const PORT = process.env.PORT || 3000;
 
 async function start() {
     try {
-        await initDB();
-        console.log('Database initialized');
+        // ✅ STEP 1: Initialize Cloud SQL Connector pool FIRST
+        await db.init();
+        console.log('✅ Database pool ready');
     } catch (err) {
-        console.error('DB init failed, starting server anyway:', err.message);
+        console.error('❌ Failed to connect to database:', err.message);
+        process.exit(1); // Don't start app without DB
     }
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+    try {
+        // ✅ STEP 2: Initialize tables
+        await initDB();
+        console.log('✅ Database initialized');
+    } catch (err) {
+        console.error('⚠️ DB init failed (tables may already exist):', err.message);
+    }
+
+    // ✅ STEP 3: Load passport AFTER db is ready
+    const passport = require('./config/passport');
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    // ✅ STEP 4: Mount routes
+    const authRoutes = require('./routes/authRoutes');
+    const fileRoutes = require('./routes/fileRoutes');
+    const adminRoutes = require('./routes/adminRoutes');
+
+    app.use('/auth', authRoutes);
+    app.use('/api/files', fileRoutes);
+    app.use('/api/admin', adminRoutes);
+
+    app.use(express.static(path.join(__dirname, '../frontend')));
+
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(__dirname, '../frontend/index.html'));
+    });
+
+    app.get('/health', (req, res) => {
+        res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+
+    app.use((err, req, res, next) => {
+        console.error('Unhandled error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    });
+
+    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 }
 
 start();
