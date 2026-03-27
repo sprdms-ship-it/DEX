@@ -101,6 +101,15 @@
         <div class="detail-user-info" id="detailUserInfo"></div>
         <div class="detail-stats" id="detailStats"></div>
 
+        <!-- Storage limit control -->
+        <div class="storage-limit-row" id="storageLimitRow" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 16px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border);">
+            <span style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Storage Limit</span>
+            <input type="number" id="storageLimitInput" class="form-input" style="width:100px;padding:8px 12px;font-size:14px;text-align:center;" min="0" step="100" placeholder="500">
+            <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap;">MB</span>
+            <button class="btn btn-sm" onclick="updateStorageLimit()" style="white-space:nowrap;">Update</button>
+            <span id="storageLimitInfo" style="font-size:11px;color:var(--text-muted);margin-left:auto;white-space:nowrap;"></span>
+        </div>
+
         <!-- 4 tabs now -->
         <div class="detail-tab-bar">
             <button class="detail-tab active" onclick="switchDetailTab('owned')">Owned Files</button>

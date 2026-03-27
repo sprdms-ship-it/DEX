@@ -68,14 +68,14 @@ exports.toggleDomain = async (req, res) => {
 // ─── USER ANALYTICS ───
 exports.getRegisteredUsers = async (req, res) => {
     try {
-        const users = await db.allAsync(`SELECT id, name, email, company, role, domain, created_at FROM users ORDER BY created_at DESC`);
+        const users = await db.allAsync(`SELECT id, name, email, company, role, domain, storage_limit, created_at FROM users ORDER BY created_at DESC`);
         const enriched = [];
         for (const user of users) {
             const stats = await db.getAsync(
                 `SELECT COUNT(*) as total_items, SUM(CASE WHEN type='file' THEN 1 ELSE 0 END) as file_count, SUM(CASE WHEN type='folder' THEN 1 ELSE 0 END) as folder_count, COALESCE(SUM(CASE WHEN type='file' THEN size ELSE 0 END), 0) as storage_used FROM files WHERE owner_id = ?`,
                 [user.id]
             );
-            enriched.push({ ...user, file_count: stats.file_count || 0, folder_count: stats.folder_count || 0, total_items: stats.total_items || 0, storage_used: stats.storage_used || 0 });
+            enriched.push({ ...user, file_count: stats.file_count || 0, folder_count: stats.folder_count || 0, total_items: stats.total_items || 0, storage_used: stats.storage_used || 0, storage_limit: user.storage_limit || 524288000 });
         }
         res.json(enriched);
     } catch (err) { console.error('getRegisteredUsers error:', err); res.status(500).json({ message: 'Server error' }); }
@@ -84,7 +84,7 @@ exports.getRegisteredUsers = async (req, res) => {
 exports.getUserDetail = async (req, res) => {
     try {
         const { userId } = req.params;
-        const user = await db.getAsync(`SELECT id, name, email, company, role, domain, created_at FROM users WHERE id = ?`, [userId]);
+        const user = await db.getAsync(`SELECT id, name, email, company, role, domain, storage_limit, created_at FROM users WHERE id = ?`, [userId]);
         if (!user) return res.status(404).json({ message: 'User not found' });
         const ownedFiles = await db.allAsync(`SELECT id, name, type, size, parent_id, created_at FROM files WHERE owner_id = ? ORDER BY created_at DESC`, [userId]);
         const sharedWithUser = await db.allAsync(`SELECT f.id, f.name, f.type, f.size, f.created_at, p.role, (SELECT u2.email FROM users u2 WHERE u2.id = f.owner_id) as shared_by FROM files f INNER JOIN permissions p ON p.file_id = f.id AND p.user_id = ? ORDER BY f.created_at DESC`, [userId]);
@@ -179,6 +179,20 @@ exports.adminUploadFile = async (req, res) => {
         blobStream.end(file.buffer);
 
     } catch (err) { console.error('adminUploadFile error:', err); res.status(500).json({ message: 'Server error' }); }
+};
+
+// ─── ADMIN: UPDATE USER STORAGE LIMIT ───
+exports.updateStorageLimit = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { storage_limit_mb } = req.body;
+        if (storage_limit_mb === undefined || storage_limit_mb < 0) return res.status(400).json({ message: 'Valid storage limit required' });
+        const user = await db.getAsync(`SELECT id FROM users WHERE id = ?`, [userId]);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const limitBytes = Math.round(storage_limit_mb * 1024 * 1024);
+        await db.runAsync(`UPDATE users SET storage_limit = ? WHERE id = ?`, [limitBytes, userId]);
+        res.json({ message: `Storage limit set to ${storage_limit_mb} MB`, storage_limit: limitBytes });
+    } catch (err) { console.error('updateStorageLimit error:', err); res.status(500).json({ message: 'Server error' }); }
 };
 
 exports.adminGetUserFiles = async (req, res) => {

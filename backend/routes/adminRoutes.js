@@ -17,7 +17,8 @@ const {
     adminDeleteFile,
     adminCreateFolder,
     adminUploadFile,
-    adminGetUserFiles
+    adminGetUserFiles,
+    updateStorageLimit
 } = require('../controllers/adminController');
 
 // All admin routes require auth + admin role
@@ -43,5 +44,8 @@ router.get('/user-files/:userId', adminGetUserFiles);
 router.post('/user-files/:userId/folder', adminCreateFolder);
 router.post('/user-files/:userId/upload', upload.single('file'), adminUploadFile);
 router.delete('/file/:fileId', adminDeleteFile);
+
+// Storage limit
+router.patch('/user-storage/:userId', updateStorageLimit);
 
 module.exports = router;

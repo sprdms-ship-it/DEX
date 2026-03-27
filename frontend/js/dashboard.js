@@ -342,7 +342,7 @@ function createCard(item) {
 // ─── STORAGE ───
 function updateStorage() {
     let total = 0;
-    allFiles.forEach(f => { if (f.size) total += f.size; });
+    allFiles.forEach(f => { if (f.size) total += parseInt(f.size) || 0; });
     const max = 500 * 1024 * 1024;
     const pct = Math.min((total / max) * 100, 100);
     const fill = document.getElementById('storageFill');

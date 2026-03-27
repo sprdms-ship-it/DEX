@@ -136,7 +136,14 @@ async function fetchRegisteredUsers() {
         if (!res.ok) throw new Error();
         const users = await res.json();
         let totalFiles = 0, totalFolders = 0, totalStorage = 0;
-        users.forEach(u => { totalFiles += u.file_count; totalFolders += u.folder_count; totalStorage += u.storage_used; });
+        users.forEach(u => {
+            u.file_count = parseInt(u.file_count) || 0;
+            u.folder_count = parseInt(u.folder_count) || 0;
+            u.storage_used = parseInt(u.storage_used) || 0;
+            totalFiles += u.file_count;
+            totalFolders += u.folder_count;
+            totalStorage += u.storage_used;
+        });
         document.getElementById('statTotalUsers').textContent = users.length;
         document.getElementById('statTotalFiles').textContent = totalFiles;
         document.getElementById('statTotalFolders').textContent = totalFolders;
@@ -150,7 +157,7 @@ async function fetchRegisteredUsers() {
             tr.innerHTML = `
                 <td><div class="user-cell"><div class="user-avatar">${getInitials(u.name, u.email)}</div><div><div class="user-cell-name">${u.name || '—'}</div><div class="user-cell-email">${u.email}</div></div></div></td>
                 <td>${u.domain || '—'}</td><td>${u.file_count}</td><td>${u.folder_count}</td>
-                <td><div class="storage-bar-mini"><div class="storage-bar-track"><div class="fill" style="width:${pct.toFixed(1)}%"></div></div><span style="font-size:12px;color:var(--text-muted);">${formatSize(u.storage_used)}</span></div></td>
+                <td><div class="storage-bar-mini"><div class="storage-bar-track"><div class="fill" style="width:${Math.min((u.storage_used/((parseInt(u.storage_limit)||524288000)))*100,100).toFixed(1)}%"></div></div><span style="font-size:12px;color:var(--text-muted);">${formatSize(u.storage_used)} / ${formatSize(parseInt(u.storage_limit)||524288000)}</span></div></td>
                 <td style="font-size:13px;color:var(--text-muted);">${formatDate(u.created_at)}</td>
                 <td><button class="view-detail-btn" onclick="openUserDetail('${u.id}')">View</button></td>`;
             tbody.appendChild(tr);
@@ -178,11 +185,17 @@ async function openUserDetail(userId) {
                 <div class="detail-meta">${data.user.company || ''} ${data.user.company ? '·' : ''} ${data.user.domain || ''} · Joined ${formatDate(data.user.created_at)}</div>
             </div>`;
 
+        const userLimit = parseInt(data.user.storage_limit) || 524288000;
+        const userUsed = parseInt(data.stats.storage_used) || 0;
         document.getElementById('detailStats').innerHTML = `
-            <div class="detail-stat"><div class="detail-stat-value">${data.stats.file_count}</div><div class="detail-stat-label">Files</div></div>
-            <div class="detail-stat"><div class="detail-stat-value">${data.stats.folder_count}</div><div class="detail-stat-label">Folders</div></div>
-            <div class="detail-stat"><div class="detail-stat-value">${formatSize(data.stats.storage_used)}</div><div class="detail-stat-label">Storage</div></div>
+            <div class="detail-stat"><div class="detail-stat-value">${parseInt(data.stats.file_count)||0}</div><div class="detail-stat-label">Files</div></div>
+            <div class="detail-stat"><div class="detail-stat-value">${parseInt(data.stats.folder_count)||0}</div><div class="detail-stat-label">Folders</div></div>
+            <div class="detail-stat"><div class="detail-stat-value">${formatSize(userUsed)}</div><div class="detail-stat-label">Storage</div></div>
             <div class="detail-stat"><div class="detail-stat-value">${data.shared_by_user.length}</div><div class="detail-stat-label">Shared</div></div>`;
+
+        // Set storage limit input
+        document.getElementById('storageLimitInput').value = Math.round(userLimit / (1024 * 1024));
+        document.getElementById('storageLimitInfo').textContent = `Using ${formatSize(userUsed)} of ${formatSize(userLimit)}`;
 
         renderDetailList('detailOwnedList', data.owned_files, 'owned');
         renderDetailList('detailSharedWithList', data.shared_with_user, 'shared-with');
@@ -357,6 +370,22 @@ async function adminUploadFile() {
         if (res.ok) { showToast(`"${fileInput.files[0].name}" uploaded`, 'success'); fileInput.value = ''; adminBrowseFiles(parentId); }
         else showToast(data.message || 'Failed', 'error');
     } catch (err) { showToast("Upload failed", "error"); }
+}
+
+async function updateStorageLimit() {
+    if (!currentDetailUserId) return;
+    const mb = parseFloat(document.getElementById('storageLimitInput').value);
+    if (isNaN(mb) || mb < 0) { showToast('Enter a valid number', 'error'); return; }
+    try {
+        const res = await fetch(`${API}/user-storage/${currentDetailUserId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ storage_limit_mb: mb })
+        });
+        const data = await res.json();
+        if (res.ok) { showToast(`Storage limit set to ${mb} MB`, 'success'); openUserDetail(currentDetailUserId); }
+        else showToast(data.message || 'Failed', 'error');
+    } catch (err) { showToast('Error updating limit', 'error'); }
 }
 
 // ─── DETAIL TAB SWITCH ───

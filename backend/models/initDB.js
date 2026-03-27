@@ -14,6 +14,7 @@ const initDB = async () => {
                 is_verified INTEGER DEFAULT 0,
                 role TEXT DEFAULT 'user',
                 domain TEXT,
+                storage_limit BIGINT DEFAULT 524288000,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             )
         `);
