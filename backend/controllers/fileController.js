@@ -25,7 +25,7 @@ exports.uploadFile = async (req, res) => {
 
         const fileId = uuidv4();
         const fileName = Date.now() + '-' + file.originalname;
-        const gcsPath = `projects/ftp-dex/users/${user.id}/uploads/${fileName}`;
+        const gcsPath = ['projects/ftp-dex/users', user.id, 'uploads', fileName].join('/');
 
         const blob = bucket.file(gcsPath);
         const blobStream = blob.createWriteStream({
@@ -312,10 +312,8 @@ exports.moveFile = async (req, res) => {
 exports.downloadFile = async (req, res) => {
     try {
         const { file_id } = req.params;
-        
-        // Add this to debug
         console.log('downloadFile called for file_id:', file_id, 'user:', req.user?.id);
-        
+
         const file = await db.getAsync(`SELECT * FROM files WHERE id = ?`, [file_id]);
         console.log('file found:', file);
 
@@ -323,9 +321,15 @@ exports.downloadFile = async (req, res) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        const gcsFile = bucket.file(file.path);
+        // ✅ Normalize backslashes → forward slashes
+        const normalizedPath = file.path.replace(/\\/g, '/');
+        console.log('normalized GCS path:', normalizedPath);
+
+        const gcsFile = bucket.file(normalizedPath);
         const [exists] = await gcsFile.exists();
+
         if (!exists) {
+            console.error('GCS file not found at path:', normalizedPath);
             return res.status(404).json({ message: 'File not found in storage' });
         }
 
@@ -339,8 +343,8 @@ exports.downloadFile = async (req, res) => {
         res.json({ downloadUrl: signedUrl, name: file.name });
 
     } catch (err) {
-        console.error('downloadFile error:', err); // This will show the REAL error
-        res.status(500).json({ message: err.message }); // Return actual error temporarily
+        console.error('downloadFile error:', err);
+        res.status(500).json({ message: err.message });
     }
 };
 
