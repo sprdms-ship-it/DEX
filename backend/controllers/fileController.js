@@ -320,6 +320,61 @@ exports.downloadFile = async (req, res) => {
     }
 };
 
+// ─── SEARCH FILES ───
+exports.searchFiles = async (req, res) => {
+    try {
+        const { q } = req.query;
+        const user = req.user;
+
+        if (!q || !q.trim()) {
+            return res.json([]);
+        }
+
+        const searchTerm = '%' + q.trim().toLowerCase() + '%';
+
+        // Search owned files
+        const ownFiles = await db.allAsync(
+            `SELECT * FROM files WHERE owner_id = ? AND LOWER(name) LIKE ? ORDER BY type DESC, created_at DESC`,
+            [user.id, searchTerm]
+        );
+
+        // Search files shared with user
+        const sharedFiles = await db.allAsync(
+            `SELECT f.* FROM files f
+             INNER JOIN permissions p ON p.file_id = f.id
+             WHERE p.user_id = ? AND LOWER(f.name) LIKE ?
+             ORDER BY f.type DESC, f.created_at DESC`,
+            [user.id, searchTerm]
+        );
+
+        // Search files shared via domain
+        const userDomain = user.email ? user.email.split('@')[1] : null;
+        let domainFiles = [];
+        if (userDomain) {
+            domainFiles = await db.allAsync(
+                `SELECT f.* FROM files f
+                 INNER JOIN permissions p ON p.file_id = f.id
+                 WHERE p.domain = ? AND LOWER(f.name) LIKE ?
+                 ORDER BY f.type DESC, f.created_at DESC`,
+                [userDomain, searchTerm]
+            );
+        }
+
+        // Merge and deduplicate
+        const allResults = [...ownFiles];
+        const ids = new Set(allResults.map(f => f.id));
+        for (const file of [...sharedFiles, ...domainFiles]) {
+            if (!ids.has(file.id)) { ids.add(file.id); allResults.push(file); }
+        }
+
+        res.json(allResults);
+
+    } catch (err) {
+        console.error('searchFiles error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // ─── SHARE EMAIL ───
 const { sendMail } = require('../utils/mailer');
 

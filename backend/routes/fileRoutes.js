@@ -28,6 +28,7 @@ router.post('/upload', (req, res, next) => {
 
 // ─── FOLDER OPERATIONS ───
 router.post('/folder', fileController.createFolder);
+router.get('/search', fileController.searchFiles);
 router.get('/', fileController.getFiles);
 
 

@@ -137,9 +137,22 @@ async function loadFolderTree() {
 }
 
 // ─── SEARCH ───
+let searchTimeout = null;
 function handleSearch(query) {
-    searchQuery = query.toLowerCase().trim();
-    renderFiles();
+    searchQuery = query.trim();
+    clearTimeout(searchTimeout);
+    if (!searchQuery) { fetchFiles(currentFolder); return; }
+    searchTimeout = setTimeout(async () => {
+        try {
+            const res = await fetch(API + "/search?q=" + encodeURIComponent(searchQuery), {
+                headers: { Authorization: "Bearer " + token }
+            });
+            if (!res.ok) return;
+            allFiles = await res.json();
+            allFiles.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            renderFiles();
+        } catch (err) { console.error("search error:", err); }
+    }, 300);
 }
 
 // ─── BREADCRUMB ───
