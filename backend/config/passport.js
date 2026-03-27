@@ -16,39 +16,39 @@ passport.deserializeUser((user, done) => {
 
 // ─── DYNAMIC DOMAIN CHECK + USER CREATION ───
 // Instead of hardcoded domains, checks the domains table in DB
-async function findOrCreateUser(email, name, done) {
+async function findOrCreateUser(email, name, avatar, done) {
     try {
         email = email.toLowerCase();
         const domain = email.split('@')[1];
 
-        // Check if domain is approved in DB
         const domainRow = await db.getAsync(
             `SELECT * FROM domains WHERE name = ? AND is_approved = 1`,
             [domain]
         );
-
         if (!domainRow) {
             return done(null, false, { message: 'Domain not approved for SSO' });
         }
 
-        // Check if user already exists
         const existingUser = await db.getAsync(
             `SELECT * FROM users WHERE email = ?`,
             [email]
         );
 
         if (existingUser) {
-            return done(null, existingUser);
+            // Update avatar if changed
+            if (avatar && existingUser.avatar !== avatar) {
+                await db.runAsync(`UPDATE users SET avatar = ? WHERE id = ?`, [avatar, existingUser.id]);
+            }
+            return done(null, { ...existingUser, avatar: avatar || existingUser.avatar });
         }
 
-        // Create new SSO user
         const id = Date.now().toString();
         await db.runAsync(
-            `INSERT INTO users (id, name, email, role, domain, is_verified) VALUES (?, ?, ?, ?, ?, ?)`,
-            [id, name, email, 'user', domain, 1]
+            `INSERT INTO users (id, name, email, role, domain, is_verified, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [id, name, email, 'user', domain, 1, avatar || null]
         );
 
-        const newUser = { id, name, email, role: 'user', domain };
+        const newUser = { id, name, email, role: 'user', domain, avatar: avatar || null };
         return done(null, newUser);
 
     } catch (err) {
@@ -67,7 +67,8 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     async (accessToken, refreshToken, profile, done) => {
         const email = profile.emails[0].value;
         const name = profile.displayName || email.split('@')[0];
-        findOrCreateUser(email, name, done);
+        const avatar = profile.photos?.[0]?.value?.replace('=s96-c', '=s200-c') || null;
+        findOrCreateUser(email, name, avatar, done);
     }));
 }
 
@@ -114,7 +115,7 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_TENANT_ID) {
                 email.split('@')[0];
 
             // ✅ REUSE YOUR EXISTING LOGIC (GOOD DESIGN)
-            return findOrCreateUser(email, name, done);
+            return findOrCreateUser(email, name, null, done);
 
         } catch (err) {
             console.error("Microsoft SSO error:", err);

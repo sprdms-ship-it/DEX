@@ -18,6 +18,11 @@ const initDB = async () => {
             )
         `);
 
+        // Add avatar column if it doesn't exist (safe migration)
+        await db.pool.query(`
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT
+        `);
+
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS allowed_users (
                 id TEXT PRIMARY KEY,

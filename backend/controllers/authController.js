@@ -156,7 +156,7 @@ exports.verifyOTPAndSignup = async (req, res) => {
 
         // ✅ GENERATE TOKEN
         const token = jwt.sign(
-            { id: userId, email: normalizedEmail, role: 'user' },
+            { id: userId, email: normalizedEmail, role: 'user', name: name, avatar: null },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
@@ -201,7 +201,7 @@ exports.login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
+            { id: user.id, email: user.email, role: user.role, name: user.name, avatar: user.avatar || null },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );

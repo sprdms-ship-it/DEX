@@ -17,7 +17,7 @@ router.get('/google/callback', (req, res, next) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
+            { id: user.id, email: user.email, role: user.role, name: user.name, avatar: user.avatar || null },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -37,7 +37,7 @@ router.get('/microsoft/callback',
     }),
     (req, res) => {
         const token = jwt.sign(
-            { id: req.user.id, email: req.user.email, role: req.user.role },
+            { id: req.user.id, email: req.user.email, role: req.user.role, name: req.user.name, avatar: req.user.avatar || null },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );

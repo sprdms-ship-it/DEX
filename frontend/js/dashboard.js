@@ -17,7 +17,32 @@ try {
     payload = JSON.parse(atob(token.split('.')[1]));
     userDomain = payload?.email?.split("@")[1] || "";
     if (payload.exp && payload.exp * 1000 < Date.now()) { localStorage.removeItem("token"); window.location.replace("index.html"); }
-    document.getElementById("userBadge").textContent = payload.email || "User";
+    // ─── POPULATE PROFILE WIDGET ───
+    const profileName = payload.name || payload.email.split('@')[0];
+    const profileEmail = payload.email || '';
+    const profileAvatar = payload.avatar || null;
+
+    document.getElementById('profileName').textContent = profileName;
+    document.getElementById('profileEmail').textContent = profileEmail;
+
+    const imgEl = document.getElementById('profileAvatarImg');
+    const initialEl = document.getElementById('profileAvatarInitial');
+
+    if (profileAvatar) {
+        imgEl.src = profileAvatar;
+        imgEl.style.display = 'block';
+        initialEl.style.display = 'none';
+        imgEl.onerror = () => {
+            // If image fails to load, fall back to initials
+            imgEl.style.display = 'none';
+            initialEl.style.display = 'block';
+            initialEl.textContent = profileName.charAt(0).toUpperCase();
+        };
+    } else {
+        imgEl.style.display = 'none';
+        initialEl.style.display = 'block';
+        initialEl.textContent = profileName.charAt(0).toUpperCase();
+    }
 } catch (e) { localStorage.removeItem("token"); window.location.replace("index.html"); }
 
 // ─── STATE ───
