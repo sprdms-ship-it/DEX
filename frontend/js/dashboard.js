@@ -1,5 +1,6 @@
 const API = "/api/files";
 
+// ─── AUTH ───
 const urlParams = new URLSearchParams(window.location.search);
 const tokenFromSSO = urlParams.get("token");
 if (tokenFromSSO) { localStorage.setItem("token", tokenFromSSO); window.location.replace("dashboard.html"); }
@@ -19,208 +20,186 @@ try {
     document.getElementById("userBadge").textContent = payload.email || "User";
 } catch (e) { localStorage.removeItem("token"); window.location.replace("index.html"); }
 
+// ─── STATE ───
 let currentFolder = null;
 let folderHistory = [];
+let allFiles = [];
 let selectedFile = null;
 let shareLink = "";
-let currentView = 'grid';
-let currentFilter = 'all';
-let currentTab = 'drive';
-let allFiles = [];
+let currentTab = "drive";
+let searchQuery = "";
+let contextTarget = null;
 
-function showToast(msg, type = 'info') {
-    const c = document.getElementById('toastContainer');
-    const t = document.createElement('div');
-    t.className = `toast ${type}`; t.textContent = msg; c.appendChild(t);
+// ─── TOAST ───
+function showToast(msg, type = "info") {
+    const c = document.getElementById("toastContainer");
+    const t = document.createElement("div");
+    t.className = "toast " + type; t.textContent = msg; c.appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
 
-function getFileIconData(item) {
-    if (item.type === 'folder') return { icon: '📁', cls: 'folder' };
-    const ext = item.name.split('.').pop().toLowerCase();
-    const m = {
-        pdf: { icon: '📕', cls: 'pdf' },
-        doc: { icon: '📘', cls: 'doc' }, docx: { icon: '📘', cls: 'doc' },
-        xls: { icon: '📗', cls: 'sheet' }, xlsx: { icon: '📗', cls: 'sheet' }, csv: { icon: '📊', cls: 'sheet' },
-        ppt: { icon: '📙', cls: 'doc' }, pptx: { icon: '📙', cls: 'doc' },
-        txt: { icon: '📄', cls: 'default' },
-        jpg: { icon: '🖼️', cls: 'image' }, jpeg: { icon: '🖼️', cls: 'image' }, png: { icon: '🖼️', cls: 'image' },
-        gif: { icon: '🖼️', cls: 'image' }, svg: { icon: '🖼️', cls: 'image' }, webp: { icon: '🖼️', cls: 'image' },
-        mp4: { icon: '🎬', cls: 'media' }, avi: { icon: '🎬', cls: 'media' }, mov: { icon: '🎬', cls: 'media' },
-        mp3: { icon: '🎵', cls: 'media' }, wav: { icon: '🎵', cls: 'media' },
-        zip: { icon: '📦', cls: 'archive' }, rar: { icon: '📦', cls: 'archive' }, tar: { icon: '📦', cls: 'archive' },
-        js: { icon: '⚙️', cls: 'default' }, py: { icon: '🐍', cls: 'default' },
-        html: { icon: '🌐', cls: 'default' }, json: { icon: '📋', cls: 'default' }
-    };
-    return m[ext] || { icon: '📄', cls: 'default' };
-}
-
+// ─── HELPERS ───
 function formatSize(bytes) {
-    if (!bytes) return '—';
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
+    bytes = parseInt(bytes) || 0;
+    if (!bytes) return "—";
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + " MB";
+    return (bytes / 1073741824).toFixed(2) + " GB";
 }
 
 function formatDate(dateStr) {
-    if (!dateStr) return '—';
+    if (!dateStr) return "—";
     const d = new Date(dateStr);
     const now = new Date();
     const diff = now - d;
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins} min ago`;
+    if (mins < 1) return "Just now";
+    if (mins < 60) return mins + " min ago";
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    const days = Math.floor(hrs / 24);
-    if (days < 7) return `${days}d ago`;
-    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (hrs < 24) return hrs + "h ago";
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function formatDateFull(dateStr) {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now - d;
-    const hrs = Math.floor(diff / 3600000);
-    if (hrs < 24) {
-        return 'You uploaded · ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-    }
-    return 'You uploaded · ' + d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+function getFileType(name) {
+    const ext = name.split(".").pop().toLowerCase();
+    const map = {
+        pdf: "pdf", doc: "doc", docx: "doc", xls: "xls", xlsx: "xls", csv: "xls",
+        ppt: "ppt", pptx: "ppt", txt: "txt",
+        jpg: "img", jpeg: "img", png: "img", gif: "img", svg: "img", webp: "img", bmp: "img",
+        mp4: "vid", avi: "vid", mov: "vid", mkv: "vid",
+        mp3: "mp3", wav: "mp3", aac: "mp3", ogg: "mp3",
+        zip: "zip", rar: "zip", tar: "zip", "7z": "zip",
+        js: "code", py: "code", html: "code", css: "code", json: "code"
+    };
+    return map[ext] || "file";
+}
+
+function getFileLabel(name) {
+    const ext = name.split(".").pop().toUpperCase();
+    const map = { pdf: "PDF", doc: "DOC", docx: "DOC", xls: "XLS", xlsx: "XLS", ppt: "PPT", pptx: "PPT", mp3: "MP3", wav: "WAV", mp4: "MP4", zip: "ZIP", rar: "RAR", txt: "TXT", csv: "CSV" };
+    return map[name.split(".").pop().toLowerCase()] || ext;
+}
+
+function getFileColor(type) {
+    const colors = {
+        pdf: "#E53935", doc: "#1976D2", xls: "#2E7D32", ppt: "#E65100",
+        img: "#00897B", vid: "#6A1B9A", mp3: "#F9A825", zip: "#546E7A",
+        txt: "#78909C", code: "#37474F", file: "#90A4AE"
+    };
+    return colors[type] || "#90A4AE";
+}
+
+function getFileBg(type) {
+    const bgs = {
+        pdf: "#FFEBEE", doc: "#E3F2FD", xls: "#E8F5E9", ppt: "#FFF3E0",
+        img: "#E0F2F1", vid: "#F3E5F5", mp3: "#FFFDE7", zip: "#ECEFF1",
+        txt: "#ECEFF1", code: "#ECEFF1", file: "#F5F5F5"
+    };
+    return bgs[type] || "#F5F5F5";
 }
 
 // ─── TAB SWITCHING ───
-function switchDriveTab(tab) {
+function switchTab(tab) {
     currentTab = tab;
-    document.querySelectorAll('.sidebar-link').forEach(el => {
-        el.classList.toggle('active', el.dataset.tab === tab);
-    });
-
-    const title = document.getElementById('pageTitle');
-    const bc = document.getElementById('breadcrumb');
-
-    if (tab === 'drive') {
-        title.textContent = 'My Bucket';
-        bc.style.display = folderHistory.length > 0 ? 'flex' : 'none';
+    document.querySelectorAll(".sidebar-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    if (tab === "drive") {
         folderHistory = [];
+        currentFolder = null;
         fetchFiles(null);
-    } else if (tab === 'shared') {
-        title.textContent = 'Shared with me';
-        bc.style.display = 'none';
+    } else if (tab === "shared") {
         fetchSharedFiles();
-    } else if (tab === 'recent') {
-        title.textContent = 'Recent';
-        bc.style.display = 'none';
-        fetchRecentFiles();
     }
 }
 
-// ─── NAVIGATION ───
-function navigateToRoot() {
-    folderHistory = [];
-    currentTab = 'drive';
-    document.querySelectorAll('.sidebar-link').forEach(el => el.classList.toggle('active', el.dataset.tab === 'drive'));
-    document.getElementById('pageTitle').textContent = 'My Bucket';
-    document.getElementById('breadcrumb').style.display = 'none';
-    fetchFiles(null);
+// ─── FOLDER TREE ───
+async function loadFolderTree() {
+    try {
+        const res = await fetch(API, { headers: { Authorization: "Bearer " + token } });
+        if (!res.ok) return;
+        const data = await res.json();
+        const folders = data.filter(f => f.type === "folder" && !f.parent_id);
+        const tree = document.getElementById("folderTree");
+        tree.innerHTML = "";
+        if (folders.length === 0) {
+            tree.innerHTML = '<div class="tree-empty">No folders yet</div>';
+            return;
+        }
+        folders.forEach(f => {
+            const item = document.createElement("button");
+            item.className = "tree-item";
+            item.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" fill="#F9A825" stroke="#F57F17" stroke-width="0.5"/></svg><span>' + f.name + '</span>';
+            item.onclick = (e) => { e.stopPropagation(); folderHistory = [{ id: f.id, name: f.name }]; currentFolder = f.id; fetchFiles(f.id); };
+            tree.appendChild(item);
+        });
+        document.getElementById("fileCountBadge").textContent = data.filter(f => f.owner_id === payload.id).length;
+    } catch (err) { console.error("loadFolderTree:", err); }
 }
 
-function goBack() {
-    folderHistory.pop();
-    const parentId = folderHistory.length > 0 ? folderHistory[folderHistory.length - 1].id : null;
-    fetchFiles(parentId, true);
+// ─── SEARCH ───
+function handleSearch(query) {
+    searchQuery = query.toLowerCase().trim();
+    renderFiles();
 }
 
+// ─── BREADCRUMB ───
 function updateBreadcrumb() {
     const bc = document.getElementById("breadcrumb");
-    bc.innerHTML = '';
-
-    if (folderHistory.length === 0) {
-        bc.style.display = 'none';
-        document.getElementById("backBtn").style.display = 'none';
-        return;
-    }
-
-    bc.style.display = 'flex';
-
-    const root = document.createElement('a');
-    root.textContent = 'My Bucket';
-    root.onclick = () => navigateToRoot();
-    bc.appendChild(root);
+    bc.innerHTML = "";
+    const home = document.createElement("a");
+    home.className = "bc-link";
+    home.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5"/></svg>';
+    home.onclick = () => navigateToRoot();
+    bc.appendChild(home);
 
     folderHistory.forEach((folder, i) => {
-        const sep = document.createElement('span');
-        sep.className = 'separator'; sep.textContent = '›'; bc.appendChild(sep);
-        const link = document.createElement('a');
+        const sep = document.createElement("span");
+        sep.className = "bc-sep";
+        sep.textContent = "/";
+        bc.appendChild(sep);
+        const link = document.createElement("a");
+        link.className = "bc-link";
         link.textContent = folder.name;
-        link.onclick = () => { folderHistory = folderHistory.slice(0, i + 1); fetchFiles(folder.id, true); };
+        link.onclick = () => { folderHistory = folderHistory.slice(0, i + 1); currentFolder = folder.id; fetchFiles(folder.id); };
         bc.appendChild(link);
     });
-
-    document.getElementById("backBtn").style.display = 'inline-flex';
 }
 
-// ─── VIEW / FILTER ───
-function setView(view) {
-    currentView = view;
-    document.getElementById('viewGrid').classList.toggle('active', view === 'grid');
-    document.getElementById('viewList').classList.toggle('active', view === 'list');
-    document.getElementById('listHeader').style.display = view === 'list' ? 'grid' : 'none';
-    renderFiles();
+function navigateToRoot() {
+    folderHistory = [];
+    currentFolder = null;
+    currentTab = "drive";
+    document.querySelectorAll(".sidebar-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === "drive"));
+    fetchFiles(null);
 }
-
-function setFilter(filter) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
-    renderFiles();
-}
-
-// ─── NEW MENU ───
-function toggleNewMenu() { document.getElementById('newMenu').classList.toggle('open'); }
-function closeNewMenu() { document.getElementById('newMenu').classList.remove('open'); }
-document.addEventListener('click', (e) => { if (!e.target.closest('#newMenuBtn') && !e.target.closest('#newMenu')) closeNewMenu(); });
 
 // ─── FETCH FILES ───
 async function fetchFiles(parent_id = null) {
     currentFolder = parent_id;
     updateBreadcrumb();
-
     let url = API;
-    if (parent_id) url += `?parent_id=${parent_id}`;
-
+    if (parent_id) url += "?parent_id=" + parent_id;
     try {
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
         if (!res.ok) { if (res.status === 401) { localStorage.removeItem("token"); window.location.replace("index.html"); } return; }
         allFiles = await res.json();
         allFiles.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
         renderFiles();
         updateStorage();
-    } catch (err) { console.error("fetchFiles error:", err); showToast("Failed to load files", "error"); }
+        loadFolderTree();
+    } catch (err) { console.error("fetchFiles:", err); showToast("Failed to load files", "error"); }
 }
 
-// ─── FETCH SHARED FILES ───
 async function fetchSharedFiles() {
+    updateBreadcrumb();
     try {
-        const res = await fetch(API, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(API, { headers: { Authorization: "Bearer " + token } });
         if (!res.ok) return;
         const data = await res.json();
-        // Show files where user is NOT the owner (shared with them)
         allFiles = data.filter(f => f.owner_id !== payload.id);
         allFiles.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
         renderFiles();
     } catch (err) { showToast("Failed to load shared files", "error"); }
-}
-
-// ─── FETCH RECENT FILES ───
-async function fetchRecentFiles() {
-    try {
-        const res = await fetch(API, { headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) return;
-        allFiles = await res.json();
-        // Recent = all files sorted by date, most recent first
-        allFiles.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-        renderFiles();
-    } catch (err) { showToast("Failed to load recent files", "error"); }
 }
 
 // ─── RENDER FILES ───
@@ -228,116 +207,90 @@ function renderFiles() {
     const container = document.getElementById("fileContainer");
     container.innerHTML = "";
 
-    const isGrid = currentView === 'grid';
-    container.className = isGrid ? 'file-grid' : 'file-list';
-    document.getElementById('listHeader').style.display = isGrid ? 'none' : 'grid';
-
     let filtered = allFiles;
-    if (currentFilter === 'folder') filtered = allFiles.filter(f => f.type === 'folder');
-    if (currentFilter === 'file') filtered = allFiles.filter(f => f.type === 'file');
+    if (searchQuery) {
+        filtered = allFiles.filter(f => f.name.toLowerCase().includes(searchQuery));
+    }
 
     if (filtered.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1.5"/></svg>
-                </div>
-                <div class="empty-title">${currentFilter === 'all' ? (currentTab === 'shared' ? 'No files shared with you yet' : 'This folder is empty') : 'No ' + currentFilter + 's found'}</div>
-                <div class="empty-text">${currentTab === 'shared' ? 'Files shared with you will appear here' : 'Click "New" to upload files or create folders'}</div>
-            </div>`;
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="56" height="56" viewBox="0 0 24 24" fill="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1"/></svg></div><div class="empty-title">' + (searchQuery ? "No results for \"" + searchQuery + "\"" : (currentTab === "shared" ? "No files shared with you yet" : "This folder is empty")) + '</div><div class="empty-text">' + (currentTab === "shared" ? "Files shared with you will appear here" : "Drag & drop files here or click + to upload") + '</div></div>';
         return;
     }
 
-    const folders = filtered.filter(f => f.type === 'folder');
-    const files = filtered.filter(f => f.type === 'file');
+    const folders = filtered.filter(f => f.type === "folder");
+    const files = filtered.filter(f => f.type === "file");
 
-    if (currentFilter === 'all' && folders.length > 0 && files.length > 0) {
-        addSectionLabel(container, 'Folders');
-        folders.forEach(item => container.appendChild(createCard(item)));
-        addSectionLabel(container, 'Files');
-        files.forEach(item => container.appendChild(createCard(item)));
-    } else {
-        filtered.forEach(item => container.appendChild(createCard(item)));
+    if (folders.length > 0) {
+        const folderSection = document.createElement("div");
+        folderSection.className = "section";
+        folderSection.innerHTML = '<div class="section-header"><span class="section-title">Folders</span><svg class="section-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>';
+        const folderGrid = document.createElement("div");
+        folderGrid.className = "folder-grid";
+        folders.forEach(item => folderGrid.appendChild(createFolderCard(item)));
+        folderSection.appendChild(folderGrid);
+        container.appendChild(folderSection);
+    }
+
+    if (files.length > 0) {
+        const fileSection = document.createElement("div");
+        fileSection.className = "section";
+        fileSection.innerHTML = '<div class="section-header"><span class="section-title">Files</span><svg class="section-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>';
+        const fileGrid = document.createElement("div");
+        fileGrid.className = "file-grid";
+        files.forEach(item => fileGrid.appendChild(createFileCard(item)));
+        fileSection.appendChild(fileGrid);
+        container.appendChild(fileSection);
     }
 }
 
-function addSectionLabel(container, text) {
-    const el = document.createElement('div');
-    el.className = 'section-label';
-    el.textContent = text;
-    container.appendChild(el);
-}
-
-// ─── CREATE CARD ───
-function createCard(item) {
+// ─── FOLDER CARD ───
+function createFolderCard(item) {
     const card = document.createElement("div");
-    card.className = "file-card";
-    const iconData = getFileIconData(item);
-
-    if (item.type === "folder") {
-        card.onclick = () => { folderHistory.push({ id: item.id, name: item.name }); fetchFiles(item.id); };
-    } else {
-        card.onclick = () => downloadFile(item);
-    }
-
-    const iconWrap = document.createElement("div");
-    iconWrap.className = `file-icon-wrap ${iconData.cls}`;
-    iconWrap.textContent = iconData.icon;
-
-    const actions = document.createElement("div");
-    actions.className = "file-actions";
-    const shareBtn = document.createElement("button");
-    shareBtn.className = "btn-icon"; shareBtn.innerHTML = "🔗"; shareBtn.title = "Share";
-    shareBtn.onclick = (e) => { e.stopPropagation(); openShareModal(item); };
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn-icon"; deleteBtn.innerHTML = "🗑️"; deleteBtn.title = "Delete";
-    deleteBtn.onclick = (e) => { e.stopPropagation(); deleteFile(item); };
-    actions.appendChild(shareBtn);
-    actions.appendChild(deleteBtn);
-
-    if (currentView === 'list') {
-        // Grid layout: name-cell | date | size | actions
-        const nameCell = document.createElement("div");
-        nameCell.className = "file-name-cell";
-        const name = document.createElement("div");
-        name.className = "file-name";
-        name.textContent = item.name;
-        nameCell.appendChild(iconWrap);
-        nameCell.appendChild(name);
-
-        const dateCell = document.createElement("div");
-        dateCell.className = "file-date";
-        dateCell.textContent = formatDateFull(item.created_at);
-
-        const sizeCell = document.createElement("div");
-        sizeCell.className = "file-size";
-        sizeCell.textContent = item.type === 'folder' ? '—' : formatSize(item.size);
-
-        card.appendChild(nameCell);
-        card.appendChild(dateCell);
-        card.appendChild(sizeCell);
-        card.appendChild(actions);
-    } else {
-        const name = document.createElement("div");
-        name.className = "file-name";
-        name.textContent = item.name;
-
-        const meta = document.createElement("div");
-        meta.className = "file-meta";
-        const parts = [];
-        if (item.type === 'folder') parts.push('Folder');
-        else if (item.size) parts.push(formatSize(item.size));
-        if (item.created_at) parts.push(formatDate(item.created_at));
-        meta.textContent = parts.join(' · ');
-
-        card.appendChild(actions);
-        card.appendChild(iconWrap);
-        card.appendChild(name);
-        card.appendChild(meta);
-    }
-
+    card.className = "folder-card";
+    card.onclick = () => { folderHistory.push({ id: item.id, name: item.name }); currentFolder = item.id; fetchFiles(item.id); };
+    card.oncontextmenu = (e) => { e.preventDefault(); showContextMenu(e, item); };
+    card.innerHTML = '<div class="folder-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" fill="#F9A825" stroke="#F57F17" stroke-width="0.3"/></svg></div><div class="folder-name">' + item.name + '</div><div class="folder-meta">' + formatDate(item.created_at) + '</div>';
     return card;
 }
+
+// ─── FILE CARD ───
+function createFileCard(item) {
+    const card = document.createElement("div");
+    card.className = "file-card";
+    card.onclick = () => downloadFile(item);
+    card.oncontextmenu = (e) => { e.preventDefault(); showContextMenu(e, item); };
+
+    const type = getFileType(item.name);
+    const color = getFileColor(type);
+    const bg = getFileBg(type);
+    const label = getFileLabel(item.name);
+
+    let thumbHTML;
+    if (type === "img") {
+        thumbHTML = '<div class="file-thumb" style="background:' + bg + '"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="' + color + '" stroke-width="1.2" fill="' + bg + '"/><circle cx="8" cy="9" r="2" fill="' + color + '" opacity="0.5"/><path d="M2 17l5-5 3 3 4-4 8 6" stroke="' + color + '" stroke-width="1.2" fill="none"/></svg></div>';
+    } else {
+        thumbHTML = '<div class="file-thumb" style="background:' + bg + '"><div class="file-badge" style="background:' + color + '">' + label + '</div><svg width="40" height="48" viewBox="0 0 40 48" fill="none"><rect x="2" y="2" width="36" height="44" rx="4" fill="white" stroke="#E0E0E0" stroke-width="1"/><rect x="2" y="2" width="36" height="12" rx="4" fill="' + bg + '"/><line x1="10" y1="22" x2="30" y2="22" stroke="#E0E0E0" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="28" x2="26" y2="28" stroke="#E0E0E0" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="34" x2="22" y2="34" stroke="#E0E0E0" stroke-width="1.5" stroke-linecap="round"/></svg></div>';
+    }
+
+    card.innerHTML = thumbHTML + '<div class="file-info"><div class="file-name">' + item.name + '</div><div class="file-meta">' + formatSize(item.size) + '</div></div>';
+    return card;
+}
+
+// ─── CONTEXT MENU ───
+function showContextMenu(e, item) {
+    contextTarget = item;
+    const menu = document.getElementById("contextMenu");
+    menu.style.display = "block";
+    menu.style.left = Math.min(e.clientX, window.innerWidth - 180) + "px";
+    menu.style.top = Math.min(e.clientY, window.innerHeight - 140) + "px";
+}
+
+function hideContextMenu() { document.getElementById("contextMenu").style.display = "none"; contextTarget = null; }
+document.addEventListener("click", hideContextMenu);
+
+function ctxShare() { if (contextTarget) openShareModal(contextTarget); hideContextMenu(); }
+function ctxDownload() { if (contextTarget && contextTarget.type === "file") downloadFile(contextTarget); hideContextMenu(); }
+function ctxDelete() { if (contextTarget) deleteFile(contextTarget); hideContextMenu(); }
 
 // ─── STORAGE ───
 function updateStorage() {
@@ -345,39 +298,44 @@ function updateStorage() {
     allFiles.forEach(f => { if (f.size) total += parseInt(f.size) || 0; });
     const max = 500 * 1024 * 1024;
     const pct = Math.min((total / max) * 100, 100);
-    const fill = document.getElementById('storageFill');
-    const text = document.getElementById('storageText');
-    if (fill) fill.style.width = pct.toFixed(1) + '%';
-    if (text) text.textContent = `${formatSize(total)} of 500 MB used`;
+    const fill = document.getElementById("storageFill");
+    const text = document.getElementById("storageText");
+    const pctEl = document.getElementById("storagePct");
+    if (fill) fill.style.width = pct.toFixed(1) + "%";
+    if (text) text.textContent = formatSize(total) + " of 500 MB";
+    if (pctEl) pctEl.textContent = pct.toFixed(0) + "%";
 }
 
-// ─── FILE OPERATIONS (unchanged) ───
+// ─── FILE OPERATIONS ───
 async function downloadFile(item) {
     try {
-        const res = await fetch(`${API}/${item.id}/download`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(API + "/" + item.id + "/download", { headers: { Authorization: "Bearer " + token } });
         if (!res.ok) throw new Error();
         const data = await res.json();
         if (data.downloadUrl) {
-            const a = document.createElement('a');
-            a.href = data.downloadUrl;
-            a.download = data.name || item.name;
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } else {
-            throw new Error('No download URL');
+            const a = document.createElement("a");
+            a.href = data.downloadUrl; a.download = data.name || item.name; a.target = "_blank";
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
     } catch (err) { showToast("Download failed", "error"); }
 }
 
-async function createFolder() {
-    const name = prompt("Enter folder name:");
-    if (!name || !name.trim()) return;
+function openFolderModal() {
+    document.getElementById("folderModal").style.display = "flex";
+    document.getElementById("folderNameInput").value = "";
+    setTimeout(() => document.getElementById("folderNameInput").focus(), 100);
+}
+
+function closeFolderModal() { document.getElementById("folderModal").style.display = "none"; }
+
+async function confirmCreateFolder() {
+    const name = document.getElementById("folderNameInput").value.trim();
+    if (!name) { showToast("Enter a folder name", "error"); return; }
+    closeFolderModal();
     try {
-        const res = await fetch(`${API}/folder`, {
-            method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ name: name.trim(), parent_id: currentFolder })
+        const res = await fetch(API + "/folder", {
+            method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ name: name, parent_id: currentFolder })
         });
         const data = await res.json();
         if (res.ok) { showToast("Folder created", "success"); fetchFiles(currentFolder); }
@@ -385,56 +343,57 @@ async function createFolder() {
     } catch (err) { showToast("Connection error", "error"); }
 }
 
+// Keep old createFolder for backwards compat
+function createFolder() { openFolderModal(); }
+
 async function uploadFile() {
     const fileInput = document.getElementById("fileInput");
     if (!fileInput.files.length) return;
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
     if (currentFolder) formData.append("parent_id", currentFolder);
+    showToast("Uploading...", "info");
     try {
-        const res = await fetch(`${API}/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData });
+        const res = await fetch(API + "/upload", { method: "POST", headers: { Authorization: "Bearer " + token }, body: formData });
         const data = await res.json();
-        if (res.ok) { showToast(`"${fileInput.files[0].name}" uploaded`, "success"); fileInput.value = ""; fetchFiles(currentFolder); }
+        if (res.ok) { showToast('"' + fileInput.files[0].name + '" uploaded', "success"); fileInput.value = ""; fetchFiles(currentFolder); }
         else showToast(data.message || "Upload failed", "error");
     } catch (err) { showToast("Upload failed", "error"); }
 }
 
 async function deleteFile(item) {
-    if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
+    if (!confirm('Delete "' + item.name + '"? This cannot be undone.')) return;
     try {
-        const res = await fetch(`${API}/${item.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(API + "/" + item.id, { method: "DELETE", headers: { Authorization: "Bearer " + token } });
         const data = await res.json();
-        if (res.ok) { showToast(`"${item.name}" deleted`, "success"); fetchFiles(currentFolder); }
+        if (res.ok) { showToast('"' + item.name + '" deleted', "success"); fetchFiles(currentFolder); }
         else showToast(data.message || "Delete failed", "error");
     } catch (err) { showToast("Delete failed", "error"); }
 }
 
-// ─── SHARE (unchanged) ───
+// ─── SHARE ───
 function openShareModal(item) {
     selectedFile = item; shareLink = "";
-    document.getElementById("shareFileName").textContent = `Share "${item.name}"`;
+    document.getElementById("shareFileName").textContent = 'Share "' + item.name + '"';
     document.getElementById("shareEmail").value = "";
     document.getElementById("generalAccess").value = "restricted";
     document.getElementById("shareLinkSection").style.display = "none";
-    document.getElementById("shareModal").style.display = "block";
+    document.getElementById("shareModal").style.display = "flex";
 }
 
-function closeShareModal(e) {
-    if (e && e.target !== document.getElementById("shareModal")) return;
-    document.getElementById("shareModal").style.display = "none";
-}
+function closeShareModal() { document.getElementById("shareModal").style.display = "none"; }
 
 async function shareWithUser() {
     const email = document.getElementById("shareEmail").value.trim();
     const role = document.getElementById("shareRole").value;
     if (!email) { showToast("Enter an email", "error"); return; }
     try {
-        const res = await fetch(`${API}/share/user`, {
-            method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ file_id: selectedFile.id, target_email: email, role })
+        const res = await fetch(API + "/share/user", {
+            method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ file_id: selectedFile.id, target_email: email, role: role })
         });
         const data = await res.json();
-        if (res.ok) { showToast(`Shared with ${email}`, "success"); document.getElementById("shareEmail").value = ""; }
+        if (res.ok) { showToast("Shared with " + email, "success"); document.getElementById("shareEmail").value = ""; }
         else showToast(data.message || "Share failed", "error");
     } catch (err) { showToast("Share failed", "error"); }
 }
@@ -443,17 +402,17 @@ async function updateGeneralAccess() {
     const type = document.getElementById("generalAccess").value;
     if (type === "domain") {
         try {
-            const res = await fetch(`${API}/share/domain`, {
-                method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            const res = await fetch(API + "/share/domain", {
+                method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
                 body: JSON.stringify({ file_id: selectedFile.id, domain: userDomain, role: "viewer" })
             });
-            if (res.ok) showToast(`Shared with @${userDomain}`, "success");
+            if (res.ok) showToast("Shared with @" + userDomain, "success");
         } catch (err) { showToast("Error", "error"); }
     }
     if (type === "link") {
         try {
-            const res = await fetch(`${API}/share/link`, {
-                method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            const res = await fetch(API + "/share/link", {
+                method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
                 body: JSON.stringify({ file_id: selectedFile.id, access_type: "view" })
             });
             const data = await res.json();
@@ -474,26 +433,40 @@ function copyLink() {
 }
 
 // ─── DRAG & DROP ───
-const dashMain = document.querySelector('.dash-main');
-if (dashMain) {
-    dashMain.addEventListener('dragover', (e) => { e.preventDefault(); dashMain.classList.add('drag-over'); });
-    dashMain.addEventListener('dragleave', () => { dashMain.classList.remove('drag-over'); });
-    dashMain.addEventListener('drop', async (e) => {
-        e.preventDefault(); dashMain.classList.remove('drag-over');
+const mainContent = document.getElementById("mainContent");
+if (mainContent) {
+    let dragCounter = 0;
+    mainContent.addEventListener("dragenter", (e) => { e.preventDefault(); dragCounter++; document.getElementById("dropOverlay").classList.add("visible"); });
+    mainContent.addEventListener("dragleave", (e) => { e.preventDefault(); dragCounter--; if (dragCounter === 0) document.getElementById("dropOverlay").classList.remove("visible"); });
+    mainContent.addEventListener("dragover", (e) => { e.preventDefault(); });
+    mainContent.addEventListener("drop", async (e) => {
+        e.preventDefault(); dragCounter = 0;
+        document.getElementById("dropOverlay").classList.remove("visible");
         const files = e.dataTransfer.files;
         if (!files.length) return;
         const formData = new FormData();
         formData.append("file", files[0]);
         if (currentFolder) formData.append("parent_id", currentFolder);
+        showToast("Uploading...", "info");
         try {
-            const res = await fetch(`${API}/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData });
+            const res = await fetch(API + "/upload", { method: "POST", headers: { Authorization: "Bearer " + token }, body: formData });
             const data = await res.json();
-            if (res.ok) { showToast(`"${files[0].name}" uploaded`, "success"); fetchFiles(currentFolder); }
+            if (res.ok) { showToast('"' + files[0].name + '" uploaded', "success"); fetchFiles(currentFolder); }
             else showToast(data.message || "Upload failed", "error");
         } catch (err) { showToast("Upload failed", "error"); }
     });
 }
 
+// ─── FAB LONG PRESS FOR NEW FOLDER ───
+let fabTimer = null;
+const fabBtn = document.getElementById("fabBtn");
+if (fabBtn) {
+    fabBtn.addEventListener("mousedown", () => { fabTimer = setTimeout(() => { openFolderModal(); fabTimer = null; }, 600); });
+    fabBtn.addEventListener("mouseup", () => { if (fabTimer) { clearTimeout(fabTimer); fabTimer = null; } });
+    fabBtn.addEventListener("mouseleave", () => { if (fabTimer) { clearTimeout(fabTimer); fabTimer = null; } });
+}
+
 function logout() { localStorage.removeItem("token"); window.location.replace("index.html"); }
 
+// ─── INIT ───
 fetchFiles();
