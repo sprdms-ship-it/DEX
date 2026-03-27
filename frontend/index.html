@@ -1,220 +1,382 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONE SPR FTP DEX — Sign In</title>
-    <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONE SPR FTP DEX — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--blue:#6cb4d8;--blue-deep:#4a9bc4;--blue-pale:#e8f4fa;--blue-wash:rgba(108,180,216,.06);
+--white:#ffffff;--off-white:#f8fbfd;--cream:#f1f7fa;
+--text-dark:#1a2e3d;--text-body:#3a5567;--text-sec:#7a97a8;--text-muted:#a8bfcc;--text-hint:#c8d9e2;
+--gold:#b8962e;--success:#2d8a5e;--danger:#c0392b;
+--serif:'Playfair Display',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--sans);color:var(--text-body);background:var(--off-white);-webkit-font-smoothing:antialiased}
+
+.page{display:flex;height:100vh;width:100%}
+
+/* ═══ LEFT — BRAND SHOWCASE ═══ */
+.left{
+    flex:1;position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#d4eef8 0%,#a8d8ec 30%,#7ec4de 60%,#5aafcf 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:60px 48px;
+}
+
+.left::before{
+    content:'';position:absolute;inset:0;
+    background:
+        radial-gradient(circle 400px at 20% 80%,rgba(255,255,255,.25),transparent),
+        radial-gradient(circle 300px at 80% 20%,rgba(255,255,255,.15),transparent);
+}
+
+.left-glass{
+    position:absolute;top:10%;right:-8%;width:300px;height:300px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    animation:glassFloat 14s ease-in-out infinite alternate;
+}
+.left-glass-2{
+    position:absolute;bottom:8%;left:-5%;width:200px;height:200px;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    animation:glassFloat 18s ease-in-out infinite alternate-reverse;
+}
+@keyframes glassFloat{0%{transform:translate(0,0) scale(1)}100%{transform:translate(15px,-20px) scale(1.08)}}
+
+.left-content{position:relative;z-index:2;text-align:center;max-width:420px;animation:leftEnter 1s cubic-bezier(.16,1,.3,1) .2s both}
+@keyframes leftEnter{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+.logo-container{
+    width:200px;height:200px;margin:0 auto 36px;
+    background:rgba(255,255,255,.2);
+    border:1px solid rgba(255,255,255,.3);
+    border-radius:32px;
+    backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 20px 60px rgba(0,80,120,.12),0 2px 8px rgba(0,0,0,.04);
+    animation:logoEnter 1s cubic-bezier(.16,1,.3,1) .4s both;
+    overflow:hidden;
+}
+@keyframes logoEnter{from{opacity:0;transform:scale(.85) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.logo-container img{width:85%;height:85%;object-fit:contain}
+
+.left-title{
+    font-family:var(--serif);font-size:28px;font-weight:600;
+    color:var(--white);margin-bottom:12px;letter-spacing:-.3px;
+    text-shadow:0 2px 12px rgba(0,60,90,.15);
+    line-height:1.2;
+}
+.left-title span{font-weight:400;font-style:italic;opacity:.9}
+
+.left-desc{
+    font-size:15px;color:rgba(255,255,255,.8);line-height:1.7;
+    max-width:360px;margin:0 auto 28px;
+}
+
+.left-features{
+    display:flex;gap:24px;justify-content:center;flex-wrap:wrap;
+    animation:leftEnter 1s cubic-bezier(.16,1,.3,1) .6s both;
+}
+.feature{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:500;color:rgba(255,255,255,.85);
+    letter-spacing:.2px;
+}
+.feature-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--white);opacity:.7;
+}
+
+.left-footer{
+    position:absolute;bottom:32px;left:0;right:0;text-align:center;
+    font-size:11px;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;
+    animation:leftEnter 1s cubic-bezier(.16,1,.3,1) .8s both;
+}
+
+/* ═══ RIGHT — AUTH PANEL ═══ */
+.right{
+    width:540px;flex-shrink:0;background:var(--white);
+    display:flex;align-items:center;justify-content:center;
+    padding:48px 60px;position:relative;overflow-y:auto;
+    border-left:1px solid rgba(108,180,216,.1);
+    box-shadow:-20px 0 60px rgba(108,180,216,.04);
+}
+
+.right::before{
+    content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,transparent 10%,var(--blue) 40%,var(--blue-deep) 60%,transparent 90%);
+    opacity:.3;
+}
+
+.auth-inner{width:100%;max-width:400px;animation:rightEnter .8s cubic-bezier(.16,1,.3,1) .3s both}
+@keyframes rightEnter{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+.card-label{
+    font-family:var(--mono);font-size:10px;font-weight:500;
+    letter-spacing:4px;text-transform:uppercase;
+    color:var(--blue-deep);margin-bottom:10px;
+}
+
+.card-title{
+    font-family:var(--serif);font-size:36px;font-weight:600;
+    color:var(--text-dark);margin-bottom:6px;letter-spacing:-.5px;line-height:1.1;
+}
+
+.card-subtitle{
+    font-size:15px;color:var(--text-sec);margin-bottom:36px;line-height:1.6;
+}
+
+/* Toggle */
+.toggle-bar{
+    display:flex;background:var(--cream);
+    border-radius:12px;padding:4px;margin-bottom:30px;
+    border:1px solid rgba(108,180,216,.1);
+}
+.toggle-btn{
+    flex:1;padding:12px 0;font-size:13px;font-weight:600;
+    font-family:var(--sans);color:var(--text-muted);
+    background:transparent;border:none;border-radius:9px;
+    cursor:pointer;transition:all .35s cubic-bezier(.16,1,.3,1);
+}
+.toggle-btn.active{
+    color:var(--white);
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    box-shadow:0 4px 16px rgba(74,155,196,.25);
+}
+.toggle-btn:hover:not(.active){color:var(--text-body)}
+
+/* Panels */
+.auth-panel{display:none}
+.auth-panel.active{display:block;animation:panelIn .4s cubic-bezier(.16,1,.3,1)}
+@keyframes panelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* SSO */
+.sso-list{display:flex;flex-direction:column;gap:12px}
+.sso-btn{
+    display:flex;align-items:center;gap:16px;width:100%;
+    padding:16px 20px;background:var(--off-white);
+    border:1px solid rgba(108,180,216,.12);
+    border-radius:14px;cursor:pointer;
+    transition:all .35s cubic-bezier(.16,1,.3,1);
+    font-family:var(--sans);text-align:left;color:var(--text-dark);
+    position:relative;overflow:hidden;
+}
+.sso-btn::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(108,180,216,.06),transparent 50%);
+    opacity:0;transition:opacity .35s;
+}
+.sso-btn:hover{
+    border-color:rgba(108,180,216,.3);
+    transform:translateY(-2px);
+    box-shadow:0 8px 28px rgba(108,180,216,.1);
+}
+.sso-btn:hover::after{opacity:1}
+.sso-btn:active{transform:translateY(0)}
+
+.sso-icon{
+    width:44px;height:44px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    position:relative;z-index:1;
+}
+.sso-icon.google{background:rgba(251,188,5,.08);border:1px solid rgba(251,188,5,.12)}
+.sso-icon.microsoft{background:rgba(0,164,239,.06);border:1px solid rgba(0,164,239,.1)}
+.sso-icon svg{width:20px;height:20px}
+
+.sso-info{flex:1;min-width:0;position:relative;z-index:1}
+.sso-title{font-size:15px;font-weight:600;color:var(--text-dark)}
+.sso-domain{font-size:12px;color:var(--text-muted);margin-top:2px}
+
+.sso-arrow{color:var(--text-hint);flex-shrink:0;transition:all .35s;position:relative;z-index:1}
+.sso-btn:hover .sso-arrow{color:var(--blue-deep);transform:translateX(3px)}
+
+.sso-note{
+    text-align:center;font-size:12px;color:var(--text-muted);
+    margin-top:20px;padding-top:18px;
+    border-top:1px solid rgba(108,180,216,.08);letter-spacing:.3px;
+}
+.live-dot{
+    display:inline-block;width:5px;height:5px;border-radius:50%;
+    background:var(--success);margin-right:6px;
+    box-shadow:0 0 6px rgba(45,138,94,.3);
+    animation:pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+
+/* Form */
+.form-group{margin-bottom:22px}
+.form-label{
+    font-size:11px;font-weight:700;color:var(--text-sec);
+    display:block;margin-bottom:8px;letter-spacing:.8px;text-transform:uppercase;
+}
+.form-input{
+    width:100%;padding:14px 18px;font-size:15px;font-family:var(--sans);
+    background:var(--off-white);border:1.5px solid rgba(108,180,216,.12);
+    border-radius:12px;color:var(--text-dark);outline:none;
+    transition:all .3s cubic-bezier(.16,1,.3,1);
+}
+.form-input::placeholder{color:var(--text-hint)}
+.form-input:hover{border-color:rgba(108,180,216,.25)}
+.form-input:focus{
+    border-color:var(--blue);
+    box-shadow:0 0 0 4px rgba(108,180,216,.1);
+    background:var(--white);
+}
+.form-input:disabled{opacity:.45}
+
+/* Button */
+.btn-primary{
+    width:100%;padding:16px;margin-top:4px;
+    font-size:15px;font-weight:600;font-family:var(--sans);
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    border:none;border-radius:12px;color:#fff;cursor:pointer;
+    letter-spacing:.3px;transition:all .35s cubic-bezier(.16,1,.3,1);
+    position:relative;overflow:hidden;
+    box-shadow:0 4px 16px rgba(74,155,196,.2);
+}
+.btn-primary::before{
+    content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
+    transition:left .5s ease;
+}
+.btn-primary:hover{
+    box-shadow:0 8px 32px rgba(74,155,196,.3);transform:translateY(-1px);
+}
+.btn-primary:hover::before{left:100%}
+.btn-primary:active{transform:translateY(0)}
+
+.link{color:var(--blue-deep);text-decoration:none;font-weight:600;transition:color .2s}
+.link:hover{color:#3a87a8;text-decoration:underline}
+
+/* Message */
+.auth-message{text-align:center;font-size:13px;padding:12px 16px;border-radius:10px;margin-top:16px;display:none;font-weight:500}
+.auth-message.error{display:block;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.1);color:var(--danger)}
+.auth-message.success{display:block;background:rgba(45,138,94,.06);border:1px solid rgba(45,138,94,.1);color:var(--success)}
+
+.auth-footer{text-align:center;font-size:14px;color:var(--text-sec);margin-top:28px}
+
+/* Toast */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:14px 24px;border-radius:10px;font-size:14px;font-weight:500;font-family:var(--sans);animation:toastIn .4s cubic-bezier(.16,1,.3,1),toastOut .3s ease 2.7s forwards;box-shadow:0 12px 40px rgba(0,0,0,.1)}
+.toast.success{background:rgba(45,138,94,.92);color:#fff}
+.toast.error{background:rgba(192,57,43,.92);color:#fff}
+.toast.info{background:rgba(74,155,196,.92);color:#fff}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-8px)}}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:1024px){
+    .page{flex-direction:column;overflow-y:auto;overflow-x:hidden}
+    .left{flex:none;min-height:360px;padding:48px 32px}
+    .right{width:100%;flex:1;padding:40px 32px;border-left:none;border-top:1px solid rgba(108,180,216,.1);box-shadow:none}
+    .right::before{display:none}
+    .logo-container{width:140px;height:140px;border-radius:24px;margin-bottom:24px}
+    .left-title{font-size:24px}
+    html,body{overflow:auto}
+}
+@media(max-width:480px){
+    .left{min-height:300px;padding:36px 24px}
+    .right{padding:32px 24px}
+    .card-title{font-size:30px}
+    .logo-container{width:120px;height:120px;border-radius:20px}
+    .left-features{gap:16px}
+}
+</style>
 </head>
 <body>
 
-<div class="auth-page">
+<div class="page">
 
-    <!-- BRAND -->
-    <div class="auth-brand-header">
-        <div class="auth-brand-icon">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="#c9a54e"/></svg>
+<div class="left">
+    <div class="left-glass"></div>
+    <div class="left-glass-2"></div>
+
+    <div class="left-content">
+        <div class="logo-container">
+            <img src="images/1spr.png" alt="1 SPR Auto Tech" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<span style=&quot;font-family:Playfair Display,serif;font-size:32px;font-weight:700;color:rgba(255,255,255,.9);&quot;>1 SPR</span>';">
         </div>
-        <div class="auth-brand-text">
-            <span class="prefix">ONE SPR</span>
-            <span class="name">FTP DEX</span>
+        <h2 class="left-title">Enterprise File Portal<br><span>by SPR Group</span></h2>
+        <p class="left-desc">Secure file management, seamless sharing, and enterprise-grade access control for Shriram Pistons & SPR Autotech teams.</p>
+        <div class="left-features">
+            <div class="feature"><div class="feature-dot"></div>Encrypted Storage</div>
+            <div class="feature"><div class="feature-dot"></div>SSO Access</div>
+            <div class="feature"><div class="feature-dot"></div>Smart Sharing</div>
         </div>
     </div>
 
-    <!-- CARD -->
-    <div class="auth-card">
+    <div class="left-footer">Secured by SPR Group &bull; Digital Workspace</div>
+</div>
 
-        <h1 class="auth-card-title">Sign in</h1>
-        <p class="auth-card-subtitle">Choose how you'd like to access your account</p>
+<div class="right">
+    <div class="auth-inner">
+        <div class="card-label">FTP DEX</div>
+        <h1 class="card-title">Sign in</h1>
+        <p class="card-subtitle">Choose how you'd like to access your account</p>
 
-        <!-- TOGGLE -->
-        <div class="auth-toggle">
-            <button class="auth-toggle-btn active" onclick="switchTab('sso')">SSO</button>
-            <button class="auth-toggle-btn" onclick="switchTab('email')">Email Login</button>
+        <div class="toggle-bar">
+            <button class="toggle-btn active" onclick="switchTab('sso')">SSO Login</button>
+            <button class="toggle-btn" onclick="switchTab('email')">Email Login</button>
         </div>
 
-        <!-- SSO PANEL -->
         <div id="ssoPanel" class="auth-panel active">
             <div class="sso-list">
-
                 <button class="sso-btn" onclick="googleLogin()">
-                    <div class="sso-icon google">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                        </svg>
-                    </div>
-                    <div class="sso-info">
-                        <div class="sso-title">Shrirampistons Users</div>
-                        <div class="sso-domain">Google Workspace &bull; @shrirampistons.com</div>
-                    </div>
-                    <svg class="sso-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <div class="sso-icon google"><svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
+                    <div class="sso-info"><div class="sso-title">Shrirampistons Users</div><div class="sso-domain">Google Workspace &middot; @shrirampistons.com</div></div>
+                    <svg class="sso-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
-
                 <button class="sso-btn" onclick="msLogin()">
-                    <div class="sso-icon microsoft">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
-                            <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
-                            <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
-                            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
-                        </svg>
-                    </div>
-                    <div class="sso-info">
-                        <div class="sso-title">Sprautotech Users</div>
-                        <div class="sso-domain">Microsoft 365 &bull; @sprautotech.com, @sprautotech.in</div>
-                    </div>
-                    <svg class="sso-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <div class="sso-icon microsoft"><svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg></div>
+                    <div class="sso-info"><div class="sso-title">Sprautotech Users</div><div class="sso-domain">Microsoft 365 &middot; @sprautotech.com, @sprautotech.in</div></div>
+                    <svg class="sso-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
-
             </div>
-            <div class="sso-note">Domain users are auto-provisioned on first sign in</div>
+            <div class="sso-note"><span class="live-dot"></span>Domain users are auto-provisioned on first sign in</div>
         </div>
 
-        <!-- EMAIL PANEL -->
         <div id="emailPanel" class="auth-panel">
-
             <div id="emailStep">
-                <div class="form-group">
-                    <label class="form-label">Email address</label>
-                    <input type="email" id="email" class="form-input" placeholder="you@company.com"
-                           onkeydown="if(event.key==='Enter') checkUser()" />
-                </div>
-                <button class="btn btn-primary" onclick="checkUser()">Continue</button>
+                <div class="form-group"><label class="form-label">Email address</label><input type="email" id="email" class="form-input" placeholder="you@company.com" onkeydown="if(event.key==='Enter') checkUser()"></div>
+                <button class="btn-primary" onclick="checkUser()">Continue</button>
             </div>
-
             <div id="passwordStep" style="display:none;">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" id="emailDisplay" class="form-input" disabled />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" id="password" class="form-input" placeholder="Enter your password"
-                           onkeydown="if(event.key==='Enter') login()" />
-                </div>
-                <button class="btn btn-primary" onclick="login()">Sign In</button>
-                <p style="text-align:center; margin-top:14px;">
-                    <a href="#" class="link" onclick="backToEmail()" style="font-size:13px;">← Use a different email</a>
-                </p>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" id="emailDisplay" class="form-input" disabled></div>
+                <div class="form-group"><label class="form-label">Password</label><input type="password" id="password" class="form-input" placeholder="Enter your password" onkeydown="if(event.key==='Enter') login()"></div>
+                <button class="btn-primary" onclick="login()">Sign In</button>
+                <p style="text-align:center;margin-top:14px;"><a href="#" class="link" onclick="backToEmail()" style="font-size:13px;">&larr; Use a different email</a></p>
             </div>
-
         </div>
 
-        <!-- MESSAGE -->
         <div id="message" class="auth-message"></div>
-
-        <!-- FOOTER -->
-        <p class="auth-footer">
-            Don't have an account? <a href="signup.html" class="link">Create one</a>
-        </p>
+        <p class="auth-footer">Don't have an account? <a href="signup.html" class="link">Create one</a></p>
     </div>
+</div>
 
-    <p class="auth-page-footer">Secured by SPR Group &bull; Enterprise File Portal</p>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-var API = "/auth";
-
-function showToast(msg, type) {
-    type = type || 'info';
-    var c = document.getElementById('toastContainer');
-    var t = document.createElement('div');
-    t.className = 'toast ' + type; t.textContent = msg;
-    c.appendChild(t);
-    setTimeout(function() { t.remove(); }, 3000);
-}
-
-function showMessage(msg, type) {
-    var el = document.getElementById('message');
-    el.textContent = msg;
-    el.className = 'auth-message ' + (type || 'error');
-}
-
-function clearMessage() {
-    var el = document.getElementById('message');
-    el.className = 'auth-message'; el.textContent = '';
-}
-
-function switchTab(tab) {
-    var btns = document.querySelectorAll('.auth-toggle-btn');
-    btns[0].classList.toggle('active', tab === 'sso');
-    btns[1].classList.toggle('active', tab === 'email');
-    document.getElementById('ssoPanel').classList.toggle('active', tab === 'sso');
-    document.getElementById('emailPanel').classList.toggle('active', tab === 'email');
-    clearMessage();
-}
-
-function backToEmail() {
-    document.getElementById('emailStep').style.display = 'block';
-    document.getElementById('passwordStep').style.display = 'none';
-    clearMessage();
-}
-
-async function checkUser() {
-    var email = document.getElementById('email').value.trim();
-    if (!email) { showMessage('Please enter your email address'); return; }
-    clearMessage();
-    try {
-        var res = await fetch(API + '/check-user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-        });
-        var data = await res.json();
-        if (data.status === 'existing_user') {
-            document.getElementById('emailStep').style.display = 'none';
-            document.getElementById('passwordStep').style.display = 'block';
-            document.getElementById('emailDisplay').value = email;
-            document.getElementById('password').focus();
-        } else if (data.status === 'new_user') {
-            localStorage.setItem('signup_email', email);
-            window.location.href = 'signup.html';
-        } else if (data.status === 'invalid_domain') {
-            showMessage('This domain is not allowed. Contact your administrator.');
-        } else if (data.status === 'not_allowed') {
-            showMessage('Your email is not authorized. Contact admin to request access.');
-        }
-    } catch (err) { showMessage('Connection error. Please try again.'); }
-}
-
-async function login() {
-    var email = document.getElementById('emailDisplay').value;
-    var password = document.getElementById('password').value;
-    if (!password) { showMessage('Please enter your password'); return; }
-    clearMessage();
-    try {
-        var res = await fetch(API + '/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: password })
-        });
-        var data = await res.json();
-        if (data.token) {
-            localStorage.setItem('token', data.token);
-            var payload = JSON.parse(atob(data.token.split('.')[1]));
-            window.location.replace(payload.role === 'admin' ? 'admin.html' : 'dashboard.html');
-        } else { showMessage(data.message || 'Login failed'); }
-    } catch (err) { showMessage('Connection error. Please try again.'); }
-}
-
-function googleLogin() { window.location.href = '/auth/google'; }
-function msLogin() { window.location.href = '/auth/microsoft'; }
-
-var existingToken = localStorage.getItem('token');
-if (existingToken) {
-    try {
-        var p = JSON.parse(atob(existingToken.split('.')[1]));
-        if (p.exp * 1000 > Date.now()) {
-            window.location.replace(p.role === 'admin' ? 'admin.html' : 'dashboard.html');
-        } else { localStorage.removeItem('token'); }
-    } catch (e) { localStorage.removeItem('token'); }
-}
+var API="/auth";
+function showToast(m,t){t=t||'info';var c=document.getElementById('toastContainer'),d=document.createElement('div');d.className='toast '+t;d.textContent=m;c.appendChild(d);setTimeout(function(){d.remove()},3000)}
+function showMessage(m,t){var e=document.getElementById('message');e.textContent=m;e.className='auth-message '+(t||'error')}
+function clearMessage(){var e=document.getElementById('message');e.className='auth-message';e.textContent=''}
+function switchTab(t){var b=document.querySelectorAll('.toggle-btn');b[0].classList.toggle('active',t==='sso');b[1].classList.toggle('active',t==='email');document.getElementById('ssoPanel').classList.toggle('active',t==='sso');document.getElementById('emailPanel').classList.toggle('active',t==='email');clearMessage()}
+function backToEmail(){document.getElementById('emailStep').style.display='block';document.getElementById('passwordStep').style.display='none';clearMessage()}
+async function checkUser(){var e=document.getElementById('email').value.trim();if(!e){showMessage('Please enter your email address');return}clearMessage();try{var r=await fetch(API+'/check-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e})});var d=await r.json();if(d.status==='existing_user'){document.getElementById('emailStep').style.display='none';document.getElementById('passwordStep').style.display='block';document.getElementById('emailDisplay').value=e;document.getElementById('password').focus()}else if(d.status==='new_user'){localStorage.setItem('signup_email',e);window.location.href='signup.html'}else if(d.status==='invalid_domain'){showMessage('This domain is not allowed. Contact your administrator.')}else if(d.status==='not_allowed'){showMessage('Your email is not authorized. Contact admin to request access.')}}catch(x){showMessage('Connection error. Please try again.')}}
+async function login(){var e=document.getElementById('emailDisplay').value,p=document.getElementById('password').value;if(!p){showMessage('Please enter your password');return}clearMessage();try{var r=await fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});var d=await r.json();if(d.token){localStorage.setItem('token',d.token);var pl=JSON.parse(atob(d.token.split('.')[1]));window.location.replace(pl.role==='admin'?'admin.html':'dashboard.html')}else{showMessage(d.message||'Login failed')}}catch(x){showMessage('Connection error. Please try again.')}}
+function googleLogin(){window.location.href='/auth/google'}
+function msLogin(){window.location.href='/auth/microsoft'}
+var et=localStorage.getItem('token');if(et){try{var p=JSON.parse(atob(et.split('.')[1]));if(p.exp*1000>Date.now())window.location.replace(p.role==='admin'?'admin.html':'dashboard.html');else localStorage.removeItem('token')}catch(e){localStorage.removeItem('token')}}
 </script>
-
 </body>
 </html>
