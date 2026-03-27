@@ -218,7 +218,6 @@ exports.accessSharedFile = async (req, res) => {
         const [exists] = await gcsFile.exists();
         if (!exists) return res.status(404).json({ message: 'File not found in storage' });
 
-        // Generate signed URL for public share link too
         const [signedUrl] = await gcsFile.getSignedUrl({
             version: 'v4',
             action: 'read',
@@ -226,9 +225,7 @@ exports.accessSharedFile = async (req, res) => {
             responseDisposition: `attachment; filename="${encodeURIComponent(file.name)}"`
         });
 
-        // Redirect directly to the file so the browser downloads it
         res.redirect(signedUrl);
-
     } catch (err) {
         console.error('accessSharedFile error:', err);
         res.status(500).json({ message: 'Server error' });

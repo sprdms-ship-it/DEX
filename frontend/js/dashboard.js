@@ -301,9 +301,22 @@ function showContextMenu(e, item) {
 function hideContextMenu() { document.getElementById("contextMenu").style.display = "none"; contextTarget = null; }
 document.addEventListener("click", hideContextMenu);
 
-function ctxShare() { if (contextTarget) openShareModal(contextTarget); hideContextMenu(); }
-function ctxDownload() { if (contextTarget && contextTarget.type === "file") downloadFile(contextTarget); hideContextMenu(); }
-function ctxDelete() { if (contextTarget) deleteFile(contextTarget); hideContextMenu(); }
+// REPLACE these three functions:
+function ctxShare() { 
+    const target = contextTarget;  // capture before hideContextMenu clears it
+    hideContextMenu(); 
+    if (target) openShareModal(target); 
+}
+function ctxDownload() { 
+    const target = contextTarget;
+    hideContextMenu(); 
+    if (target && target.type === "file") downloadFile(target); 
+}
+function ctxDelete() { 
+    const target = contextTarget;
+    hideContextMenu(); 
+    if (target) deleteFile(target); 
+}
 
 // ─── STORAGE ───
 function updateStorage() {

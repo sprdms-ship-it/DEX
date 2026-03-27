@@ -65,8 +65,18 @@ function prepareQuery(sql, params = []) {
             const before = parts[i].trimEnd().toUpperCase();
             const value = params[paramIndex];
 
-            if (before.endsWith('IS') && (value === null || value === undefined)) {
+            // Only treat as IS NULL if value is actually null/undefined
+            // AND the preceding keyword is exactly IS (not LIKE, =, etc.)
+            const lastWord = before.split(/\s+/).filter(Boolean).pop();
+            
+            if (lastWord === 'IS' && (value === null || value === undefined)) {
                 result += 'NULL';
+                // Don't push to newParams, don't increment pgIndex
+            } else if (lastWord === 'IS' && value !== null && value !== undefined) {
+                // IS with a real value — use IS NOT DISTINCT FROM for PG null-safe compare
+                pgIndex++;
+                result += `NOT DISTINCT FROM $${pgIndex}`;
+                newParams.push(value);
             } else {
                 pgIndex++;
                 result += `$${pgIndex}`;
