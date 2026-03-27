@@ -1,199 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONE SPR FTP DEX — Create Account</title>
-    <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONE SPR FTP DEX — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--blue:#5bb8d4;--blue-deep:#3a9ec0;--blue-dark:#2d7fa0;--blue-pale:#dff0f7;
+--bg:#e6f2f7;--card:#ffffff;
+--text-dark:#122a36;--text-body:#2e4f5e;--text-sec:#6d8d9c;--text-muted:#9db5c0;--text-hint:#bfd3db;
+--success:#2d8a5e;--danger:#c53030;
+--sans:'Outfit',system-ui,sans-serif;--display:'Space Grotesk',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--sans);color:var(--text-body);background:var(--bg);-webkit-font-smoothing:antialiased}
+
+.page{height:100vh;width:100%;display:flex}
+
+/* ═══ LEFT ═══ */
+.left{
+    flex:1;position:relative;overflow:hidden;
+    background:linear-gradient(150deg,#d6eef6 0%,#b8e0ee 30%,#93cfe0 60%,#72c0d4 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:60px 40px;
+}
+.orb{position:absolute;border-radius:50%;background:rgba(255,255,255,.12);filter:blur(80px)}
+.orb-1{width:500px;height:500px;top:-10%;right:-8%;animation:oF 18s ease-in-out infinite alternate}
+.orb-2{width:350px;height:350px;bottom:-5%;left:-5%;animation:oF 14s ease-in-out infinite alternate-reverse}
+@keyframes oF{0%{transform:translate(0,0) scale(1)}100%{transform:translate(15px,-15px) scale(1.08)}}
+
+.left-content{position:relative;z-index:1;text-align:center;max-width:420px}
+.logo-box{
+    width:160px;height:160px;margin:0 auto 32px;
+    background:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.5);
+    border-radius:28px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 12px 40px rgba(0,50,80,.06);
+    animation:logoIn .9s cubic-bezier(.16,1,.3,1) .2s both;
+}
+@keyframes logoIn{from{opacity:0;transform:scale(.85) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.logo-box img{width:80%;height:80%;object-fit:contain}
+.left-title{font-family:var(--display);font-size:24px;font-weight:600;color:var(--text-dark);margin-bottom:4px;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .35s both}
+.left-title-italic{font-family:var(--display);font-size:20px;font-weight:400;font-style:italic;color:var(--text-sec);margin-bottom:16px;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .4s both}
+.left-desc{font-size:14px;color:var(--text-sec);line-height:1.7;margin-bottom:28px;max-width:380px;margin-left:auto;margin-right:auto;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .5s both}
+.left-features{display:flex;gap:24px;justify-content:center;font-size:13px;font-weight:500;color:var(--text-body);animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .6s both}
+.left-features span::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--text-body);margin-right:8px;vertical-align:middle;opacity:.5}
+.left-footer{position:absolute;bottom:28px;left:0;right:0;text-align:center;font-size:10px;color:rgba(18,42,54,.25);letter-spacing:2px;text-transform:uppercase;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .7s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ RIGHT ═══ */
+.right{
+    width:500px;flex-shrink:0;background:var(--card);
+    display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+    padding:44px 44px;position:relative;
+    box-shadow:-12px 0 48px rgba(0,40,60,.05);
+    overflow-y:auto;
+}
+
+/* Accent stripe */
+.right::before{
+    content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,transparent 8%,var(--blue) 35%,var(--blue-deep) 65%,transparent 92%);
+    opacity:.25;
+}
+
+/* Staggered entrance for right panel */
+.auth-inner{width:100%}
+.auth-inner .card-label{animation:rSlide .7s cubic-bezier(.16,1,.3,1) .15s both}
+.auth-inner .card-title{animation:rSlide .7s cubic-bezier(.16,1,.3,1) .22s both}
+.auth-inner .card-subtitle{animation:rSlide .7s cubic-bezier(.16,1,.3,1) .29s both}
+.auth-inner #infoStep .form-group:nth-child(1){animation:rSlide .6s cubic-bezier(.16,1,.3,1) .35s both}
+.auth-inner #infoStep .form-group:nth-child(2){animation:rSlide .6s cubic-bezier(.16,1,.3,1) .40s both}
+.auth-inner #infoStep .form-group:nth-child(3){animation:rSlide .6s cubic-bezier(.16,1,.3,1) .45s both}
+.auth-inner #infoStep .form-group:nth-child(4){animation:rSlide .6s cubic-bezier(.16,1,.3,1) .50s both}
+.auth-inner #infoStep .form-row{animation:rSlide .6s cubic-bezier(.16,1,.3,1) .35s both}
+.auth-inner #infoStep .btn-primary{animation:rSlide .6s cubic-bezier(.16,1,.3,1) .55s both}
+.auth-inner .auth-footer{animation:rSlide .6s cubic-bezier(.16,1,.3,1) .60s both}
+@keyframes rSlide{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.card-label{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--blue-deep);margin-bottom:10px}
+.card-title{font-family:var(--display);font-size:28px;font-weight:700;color:var(--text-dark);margin-bottom:6px;letter-spacing:-.4px;line-height:1.15}
+.card-subtitle{font-size:13px;color:var(--text-sec);margin-bottom:28px;line-height:1.5}
+
+/* Form */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:18px}
+.form-label{font-size:11px;font-weight:700;color:var(--text-sec);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase}
+.form-input{
+    width:100%;padding:13px 16px;font-size:14px;font-family:var(--sans);
+    background:#f6fafb;border:1.5px solid rgba(91,184,212,.08);
+    border-radius:12px;color:var(--text-dark);outline:none;
+    transition:all .3s cubic-bezier(.16,1,.3,1);
+}
+.form-input::placeholder{color:var(--text-hint)}
+.form-input:hover{border-color:rgba(91,184,212,.2);background:#f0f7fa}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(91,184,212,.1);background:#fff;transform:translateY(-1px)}
+.form-input:disabled{opacity:.45}
+.form-hint{font-size:10px;color:var(--text-muted);margin-top:5px;line-height:1.4}
+
+.otp-input{text-align:center;font-size:28px;letter-spacing:14px;font-family:var(--mono);font-weight:600;padding:16px}
+
+/* Button */
+.btn-primary{
+    width:100%;padding:15px;margin-top:6px;
+    font-size:15px;font-weight:600;font-family:var(--sans);
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    border:none;border-radius:14px;color:#fff;cursor:pointer;
+    letter-spacing:.3px;transition:all .35s cubic-bezier(.16,1,.3,1);
+    position:relative;overflow:hidden;
+    box-shadow:0 4px 16px rgba(58,158,192,.25);
+}
+.btn-primary::before{
+    content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+    transition:left .5s ease;
+}
+.btn-primary:hover{box-shadow:0 8px 28px rgba(58,158,192,.35);transform:translateY(-2px)}
+.btn-primary:hover::before{left:100%}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+.btn-primary:disabled::before{display:none}
+
+.link{color:var(--blue-deep);text-decoration:none;font-weight:600;transition:all .2s}
+.link:hover{color:#2d7fa0;text-decoration:underline}
+.link-subtle{color:var(--text-sec);text-decoration:none;font-weight:500;transition:color .2s}
+.link-subtle:hover{color:var(--text-dark)}
+
+.auth-message{text-align:center;font-size:12px;padding:11px 16px;border-radius:10px;margin-top:14px;display:none;font-weight:500}
+.auth-message.error{display:block;background:rgba(192,57,43,.05);border:1px solid rgba(192,57,43,.08);color:var(--danger)}
+.auth-message.success{display:block;background:rgba(45,138,94,.05);border:1px solid rgba(45,138,94,.08);color:var(--success)}
+
+.auth-footer{text-align:center;font-size:13px;color:var(--text-sec);margin-top:22px}
+
+/* Toast */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:13px 22px;border-radius:10px;font-size:13px;font-weight:500;font-family:var(--sans);animation:toastIn .4s cubic-bezier(.16,1,.3,1),toastOut .3s ease 2.7s forwards;box-shadow:0 8px 30px rgba(0,0,0,.1)}
+.toast.success{background:rgba(45,138,94,.92);color:#fff}
+.toast.error{background:rgba(192,57,43,.92);color:#fff}
+.toast.info{background:rgba(58,158,192,.92);color:#fff}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+    body{overflow:auto}
+    .page{flex-direction:column;height:auto;min-height:100vh}
+    .left{min-height:360px;padding:48px 28px}
+    .right{width:100%;padding:36px 28px}
+    .right::before{display:none}
+}
+@media(max-width:480px){
+    .left{min-height:300px;padding:40px 20px}
+    .logo-box{width:120px;height:120px;border-radius:20px}
+    .left-title{font-size:20px}
+    .right{padding:28px 20px}
+    .card-title{font-size:24px}
+    .form-row{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 
-<div class="auth-page">
+<div class="page">
 
-    <div class="auth-brand-header">
-        <div class="auth-brand-icon">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="#c9a54e"/></svg>
-        </div>
-        <div class="auth-brand-text">
-            <span class="prefix">ONE SPR</span>
-            <span class="name">FTP DEX</span>
-        </div>
+<div class="left">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="left-content">
+        <div class="logo-box"><img src="images/1spr.png" alt="1 SPR" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=&quot;font-family:Space Grotesk;font-weight:700;font-size:24px;color:#2d7fa0;&quot;>1 SPR</span>';"></div>
+        <div class="left-title">Enterprise File Portal</div>
+        <div class="left-title-italic">by SPR Group</div>
+        <p class="left-desc">Secure file management, seamless sharing, and enterprise-grade access control for Shriram Pistons & SPR Autotech teams.</p>
+        <div class="left-features"><span>Encrypted Storage</span><span>SSO Access</span><span>Smart Sharing</span></div>
     </div>
+    <div class="left-footer">Secured by SPR Group &bull; Digital Workspace</div>
+</div>
 
-    <div class="auth-card auth-card-wide">
+<div class="right">
+    <div class="auth-inner">
+        <div class="card-label">Get Started</div>
+        <h1 class="card-title">Create your account</h1>
+        <p class="card-subtitle">Fill in your details. An OTP will be sent to verify your email.</p>
 
-        <h1 class="auth-card-title">Create your account</h1>
-        <p class="auth-card-subtitle">Fill in your details. An OTP will be sent to verify your email.</p>
-
-        <!-- STEP 1: INFO -->
         <div id="infoStep">
             <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Full name</label>
-                    <input type="text" id="name" class="form-input" placeholder="John Doe" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Mobile number</label>
-                    <input type="tel" id="mobile" class="form-input" placeholder="+91 98765 43210" />
-                </div>
+                <div class="form-group"><label class="form-label">Full name</label><input type="text" id="name" class="form-input" placeholder="John Doe"></div>
+                <div class="form-group"><label class="form-label">Mobile number</label><input type="tel" id="mobile" class="form-input" placeholder="+91 98765 43210"></div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Company email</label>
-                <input type="email" id="email" class="form-input" placeholder="you@company.com" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Company name</label>
-                <input type="text" id="company" class="form-input" placeholder="Acme Inc." />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Password</label>
-                <input type="password" id="password" class="form-input" placeholder="Create a strong password" />
-                <p class="form-hint">Min 8 characters with an uppercase letter, a number, and a special character</p>
-            </div>
-            <button class="btn btn-primary" onclick="sendOTP()" id="sendOtpBtn">Send OTP</button>
+            <div class="form-group"><label class="form-label">Company email</label><input type="email" id="email" class="form-input" placeholder="you@company.com"></div>
+            <div class="form-group"><label class="form-label">Company name</label><input type="text" id="company" class="form-input" placeholder="Acme Inc."></div>
+            <div class="form-group"><label class="form-label">Password</label><input type="password" id="password" class="form-input" placeholder="Create a strong password"><p class="form-hint">Min 8 characters with an uppercase letter, a number, and a special character</p></div>
+            <button class="btn-primary" onclick="sendOTP()" id="sendOtpBtn">Send OTP</button>
         </div>
 
-        <!-- STEP 2: OTP -->
         <div id="otpStep" style="display:none;">
-            <p style="color:var(--text-secondary); font-size:14px; margin-bottom:22px; text-align:center; line-height:1.5;">
-                We sent a 6-digit code to<br>
-                <strong id="otpEmailDisplay" style="color:var(--text-dark);"></strong>
-            </p>
-            <div class="form-group">
-                <label class="form-label">Enter OTP</label>
-                <input type="text" id="otp" class="form-input otp-input" placeholder="------" maxlength="6"
-                       onkeydown="if(event.key==='Enter') verifySignup()" />
-            </div>
-            <button class="btn btn-primary" onclick="verifySignup()">Verify & Create Account</button>
-            <p style="text-align:center; margin-top:16px; font-size:13px;">
-                <a href="#" class="link" onclick="resendOTP()">Resend OTP</a>
-                <span style="margin:0 10px; color:var(--text-hint);">&bull;</span>
-                <a href="#" class="link-subtle" onclick="backToInfo()">Edit details</a>
-            </p>
+            <p style="color:var(--text-sec);font-size:14px;margin-bottom:22px;text-align:center;line-height:1.5;">We sent a 6-digit code to<br><strong id="otpEmailDisplay" style="color:var(--text-dark);"></strong></p>
+            <div class="form-group"><label class="form-label">Enter OTP</label><input type="text" id="otp" class="form-input otp-input" placeholder="------" maxlength="6" onkeydown="if(event.key==='Enter') verifySignup()"></div>
+            <button class="btn-primary" onclick="verifySignup()">Verify & Create Account</button>
+            <p style="text-align:center;margin-top:14px;font-size:12px;"><a href="#" class="link" onclick="resendOTP()">Resend OTP</a><span style="margin:0 10px;color:var(--text-hint);">&bull;</span><a href="#" class="link-subtle" onclick="backToInfo()">Edit details</a></p>
         </div>
 
         <div id="message" class="auth-message"></div>
-
-        <p class="auth-footer">
-            Already have an account? <a href="index.html" class="link">Sign in</a>
-        </p>
+        <p class="auth-footer">Already have an account? <a href="index.html" class="link">Sign in</a></p>
     </div>
+</div>
 
-    <p class="auth-page-footer">Secured by SPR Group &bull; Enterprise File Portal</p>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-var API = "/auth";
-
-function showToast(msg, type) {
-    type = type || 'info';
-    var c = document.getElementById('toastContainer');
-    var t = document.createElement('div');
-    t.className = 'toast ' + type; t.textContent = msg;
-    c.appendChild(t);
-    setTimeout(function() { t.remove(); }, 3000);
-}
-
-function showMessage(msg, type) {
-    var el = document.getElementById('message');
-    el.textContent = msg;
-    el.className = 'auth-message ' + (type || 'error');
-}
-
-function clearMessage() {
-    var el = document.getElementById('message');
-    el.className = 'auth-message'; el.textContent = '';
-}
-
-window.addEventListener('DOMContentLoaded', function() {
-    var saved = localStorage.getItem('signup_email');
-    if (saved) { document.getElementById('email').value = saved; localStorage.removeItem('signup_email'); }
-});
-
-function validateFields() {
-    var name = document.getElementById('name').value.trim();
-    var email = document.getElementById('email').value.trim();
-    var company = document.getElementById('company').value.trim();
-    var mobile = document.getElementById('mobile').value.trim();
-    var password = document.getElementById('password').value;
-    if (!name || !email || !company || !mobile || !password) { showMessage('All fields are required'); return false; }
-    if (!email.includes('@')) { showMessage('Please enter a valid email'); return false; }
-    if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(password)) {
-        showMessage('Password must be at least 8 characters with an uppercase letter, a number, and a special character');
-        return false;
-    }
-    return true;
-}
-
-async function sendOTP() {
-    if (!validateFields()) return;
-    clearMessage();
-    var email = document.getElementById('email').value.trim();
-    var btn = document.getElementById('sendOtpBtn');
-    btn.disabled = true; btn.textContent = 'Sending...';
-    try {
-        var res = await fetch(API + '/send-otp', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-        });
-        var data = await res.json();
-        if (res.ok) {
-            document.getElementById('infoStep').style.display = 'none';
-            document.getElementById('otpStep').style.display = 'block';
-            document.getElementById('otpEmailDisplay').textContent = email;
-            document.getElementById('otp').focus();
-            showToast('OTP sent to your email', 'success');
-        } else { showMessage(data.message || 'Failed to send OTP'); }
-    } catch (err) { showMessage('Connection error. Please try again.'); }
-    finally { btn.disabled = false; btn.textContent = 'Send OTP'; }
-}
-
-function backToInfo() {
-    document.getElementById('otpStep').style.display = 'none';
-    document.getElementById('infoStep').style.display = 'block';
-    clearMessage();
-}
-
-async function resendOTP() {
-    var email = document.getElementById('email').value.trim();
-    try {
-        var res = await fetch(API + '/send-otp', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-        });
-        if (res.ok) { showToast('New OTP sent', 'success'); }
-        else { var d = await res.json(); showToast(d.message || 'Failed', 'error'); }
-    } catch (err) { showToast('Connection error', 'error'); }
-}
-
-async function verifySignup() {
-    var otp = document.getElementById('otp').value.trim();
-    if (!otp || otp.length !== 6) { showMessage('Please enter the 6-digit OTP'); return; }
-    clearMessage();
-    var payload = {
-        name: document.getElementById('name').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        company: document.getElementById('company').value.trim(),
-        mobile: document.getElementById('mobile').value.trim(),
-        password: document.getElementById('password').value,
-        otp: otp
-    };
-    try {
-        var res = await fetch(API + '/verify-signup', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        var data = await res.json();
-        if (data.token) {
-            localStorage.setItem('token', data.token);
-            showToast('Account created!', 'success');
-            setTimeout(function() { window.location.replace('dashboard.html'); }, 500);
-        } else { showMessage(data.message || 'Signup failed'); }
-    } catch (err) { showMessage('Connection error. Please try again.'); }
-}
+var API="/auth";
+function showToast(msg,type){type=type||'info';var c=document.getElementById('toastContainer'),t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(function(){t.remove()},3000)}
+function showMessage(msg,type){var el=document.getElementById('message');el.textContent=msg;el.className='auth-message '+(type||'error')}
+function clearMessage(){var el=document.getElementById('message');el.className='auth-message';el.textContent=''}
+window.addEventListener('DOMContentLoaded',function(){var s=localStorage.getItem('signup_email');if(s){document.getElementById('email').value=s;localStorage.removeItem('signup_email')}});
+function validateFields(){var n=document.getElementById('name').value.trim(),e=document.getElementById('email').value.trim(),c=document.getElementById('company').value.trim(),m=document.getElementById('mobile').value.trim(),p=document.getElementById('password').value;if(!n||!e||!c||!m||!p){showMessage('All fields are required');return false}if(!e.includes('@')){showMessage('Please enter a valid email');return false}if(!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(p)){showMessage('Password must be at least 8 characters with an uppercase letter, a number, and a special character');return false}return true}
+async function sendOTP(){if(!validateFields())return;clearMessage();var email=document.getElementById('email').value.trim(),btn=document.getElementById('sendOtpBtn');btn.disabled=true;btn.textContent='Sending...';try{var res=await fetch(API+'/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});var data=await res.json();if(res.ok){document.getElementById('infoStep').style.display='none';document.getElementById('otpStep').style.display='block';document.getElementById('otpEmailDisplay').textContent=email;document.getElementById('otp').focus();showToast('OTP sent to your email','success')}else{showMessage(data.message||'Failed to send OTP')}}catch(err){showMessage('Connection error. Please try again.')}finally{btn.disabled=false;btn.textContent='Send OTP'}}
+function backToInfo(){document.getElementById('otpStep').style.display='none';document.getElementById('infoStep').style.display='block';clearMessage()}
+async function resendOTP(){var email=document.getElementById('email').value.trim();try{var res=await fetch(API+'/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});if(res.ok){showToast('New OTP sent','success')}else{var d=await res.json();showToast(d.message||'Failed','error')}}catch(err){showToast('Connection error','error')}}
+async function verifySignup(){var otp=document.getElementById('otp').value.trim();if(!otp||otp.length!==6){showMessage('Please enter the 6-digit OTP');return}clearMessage();var payload={name:document.getElementById('name').value.trim(),email:document.getElementById('email').value.trim(),company:document.getElementById('company').value.trim(),mobile:document.getElementById('mobile').value.trim(),password:document.getElementById('password').value,otp:otp};try{var res=await fetch(API+'/verify-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});var data=await res.json();if(data.token){localStorage.setItem('token',data.token);showToast('Account created!','success');setTimeout(function(){window.location.replace('dashboard.html')},500)}else{showMessage(data.message||'Signup failed')}}catch(err){showMessage('Connection error. Please try again.')}}
 </script>
-
 </body>
 </html>
