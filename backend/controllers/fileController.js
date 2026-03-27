@@ -205,9 +205,30 @@ exports.accessSharedFile = async (req, res) => {
         const { token } = req.params;
         const link = await db.getAsync(`SELECT * FROM share_links WHERE token = ?`, [token]);
         if (!link) return res.status(404).json({ message: 'Invalid or expired link' });
-        if (link.expires_at && new Date() > new Date(link.expires_at)) return res.status(410).json({ message: 'Link has expired' });
-        const file = await db.getAsync(`SELECT id, name, type, size FROM files WHERE id = ?`, [link.file_id]);
-        res.json({ message: 'Access granted via link', access_type: link.access_type, file });
+        if (link.expires_at && new Date() > new Date(link.expires_at)) {
+            return res.status(410).json({ message: 'Link has expired' });
+        }
+
+        const file = await db.getAsync(`SELECT * FROM files WHERE id = ?`, [link.file_id]);
+        if (!file || file.type !== 'file') {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        const gcsFile = bucket.file(file.path);
+        const [exists] = await gcsFile.exists();
+        if (!exists) return res.status(404).json({ message: 'File not found in storage' });
+
+        // Generate signed URL for public share link too
+        const [signedUrl] = await gcsFile.getSignedUrl({
+            version: 'v4',
+            action: 'read',
+            expires: Date.now() + 15 * 60 * 1000,
+            responseDisposition: `attachment; filename="${encodeURIComponent(file.name)}"`
+        });
+
+        // Redirect directly to the file so the browser downloads it
+        res.redirect(signedUrl);
+
     } catch (err) {
         console.error('accessSharedFile error:', err);
         res.status(500).json({ message: 'Server error' });
@@ -294,17 +315,23 @@ exports.moveFile = async (req, res) => {
 exports.downloadFile = async (req, res) => {
     try {
         const { file_id } = req.params;
+        
+        // Add this to debug
+        console.log('downloadFile called for file_id:', file_id, 'user:', req.user?.id);
+        
         const file = await db.getAsync(`SELECT * FROM files WHERE id = ?`, [file_id]);
+        console.log('file found:', file);
 
-        if (!file || file.type !== 'file') return res.status(404).json({ message: 'File not found' });
+        if (!file || file.type !== 'file') {
+            return res.status(404).json({ message: 'File not found' });
+        }
 
         const gcsFile = bucket.file(file.path);
-
-        // Check if file exists in GCS
         const [exists] = await gcsFile.exists();
-        if (!exists) return res.status(404).json({ message: 'File not found in storage' });
+        if (!exists) {
+            return res.status(404).json({ message: 'File not found in storage' });
+        }
 
-        // Generate a signed URL valid for 15 minutes
         const [signedUrl] = await gcsFile.getSignedUrl({
             version: 'v4',
             action: 'read',
@@ -315,8 +342,8 @@ exports.downloadFile = async (req, res) => {
         res.json({ downloadUrl: signedUrl, name: file.name });
 
     } catch (err) {
-        console.error('downloadFile error:', err);
-        res.status(500).json({ message: 'Server error' });
+        console.error('downloadFile error:', err); // This will show the REAL error
+        res.status(500).json({ message: err.message }); // Return actual error temporarily
     }
 };
 
