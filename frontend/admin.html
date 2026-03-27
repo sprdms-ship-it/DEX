@@ -36,28 +36,31 @@
         <button class="admin-tab" data-tab="analytics" onclick="switchAdminTab('analytics')">User Analytics</button>
     </div>
 
+    <!-- DOMAINS -->
     <div class="admin-panel active" id="tab-domains">
         <div class="admin-section">
             <h3>Manage Domains</h3>
             <div class="admin-input-row">
                 <input type="text" id="domainInput" class="form-input" placeholder="example.com" onkeydown="if(event.key==='Enter') addDomain()" />
-                <button class="btn btn-primary" style="width:auto; padding:10px 24px;" onclick="addDomain()">Add Domain</button>
+                <button class="btn btn-primary" style="width:auto;padding:10px 24px;" onclick="addDomain()">Add Domain</button>
             </div>
             <ul class="admin-list" id="domainList"></ul>
         </div>
     </div>
 
+    <!-- ALLOWED USERS -->
     <div class="admin-panel" id="tab-users">
         <div class="admin-section">
             <h3>Manage Allowed Users</h3>
             <div class="admin-input-row">
                 <input type="email" id="userEmail" class="form-input" placeholder="user@example.com" onkeydown="if(event.key==='Enter') addUser()" />
-                <button class="btn btn-primary" style="width:auto; padding:10px 24px;" onclick="addUser()">Add User</button>
+                <button class="btn btn-primary" style="width:auto;padding:10px 24px;" onclick="addUser()">Add User</button>
             </div>
             <ul class="admin-list" id="userList"></ul>
         </div>
     </div>
 
+    <!-- ANALYTICS -->
     <div class="admin-panel" id="tab-analytics">
         <div class="stats-grid" id="overviewStats">
             <div class="stat-card"><div class="stat-value" id="statTotalUsers">—</div><div class="stat-label">Registered Users</div></div>
@@ -68,20 +71,21 @@
         <div class="admin-section" style="margin-top:20px;">
             <h3>All Registered Users</h3>
             <div class="user-table-wrap">
-                <table class="user-table" id="userAnalyticsTable">
+                <table class="user-table">
                     <thead><tr><th>User</th><th>Domain</th><th>Files</th><th>Folders</th><th>Storage</th><th>Joined</th><th></th></tr></thead>
                     <tbody id="userAnalyticsBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
+
 </div>
 
 <!-- CONFIRM MODAL -->
 <div id="confirmModal" class="modal">
-    <div class="modal-content" style="width:400px; text-align:center;">
-        <p id="confirmText" style="font-size:15px; margin-bottom:24px; color:var(--text-dark);"></p>
-        <div style="display:flex; gap:10px; justify-content:center;">
+    <div class="modal-content" style="width:400px;text-align:center;">
+        <p id="confirmText" style="font-size:15px;margin-bottom:24px;color:var(--text-dark);"></p>
+        <div style="display:flex;gap:10px;justify-content:center;">
             <button class="btn btn-danger" id="confirmYes">Yes, Delete</button>
             <button class="btn" onclick="closeConfirmModal()">Cancel</button>
         </div>
@@ -101,8 +105,8 @@
         <div class="detail-user-info" id="detailUserInfo"></div>
         <div class="detail-stats" id="detailStats"></div>
 
-        <!-- Storage limit control -->
-        <div class="storage-limit-row" id="storageLimitRow" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 16px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border);">
+        <!-- Storage limit -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 16px;background:var(--bg-surface);border-radius:var(--radius-sm);border:1px solid var(--border);">
             <span style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Storage Limit</span>
             <input type="number" id="storageLimitInput" class="form-input" style="width:100px;padding:8px 12px;font-size:14px;text-align:center;" min="0" step="100" placeholder="500">
             <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap;">MB</span>
@@ -110,11 +114,14 @@
             <span id="storageLimitInfo" style="font-size:11px;color:var(--text-muted);margin-left:auto;white-space:nowrap;"></span>
         </div>
 
-        <!-- 4 tabs now -->
+        <!-- 5 tabs -->
         <div class="detail-tab-bar">
             <button class="detail-tab active" onclick="switchDetailTab('owned')">Owned Files</button>
             <button class="detail-tab" onclick="switchDetailTab('shared-with')">Shared With</button>
             <button class="detail-tab" onclick="switchDetailTab('shared-by')">Shared By</button>
+            <button class="detail-tab" onclick="switchDetailTab('downloads')">
+                Downloads <span class="download-tab-badge" id="downloadCountBadge">—</span>
+            </button>
             <button class="detail-tab" onclick="switchDetailTab('manage')">Manage Files</button>
         </div>
 
@@ -127,25 +134,27 @@
         <div class="detail-panel" id="detail-shared-by">
             <div class="detail-file-list" id="detailSharedByList"></div>
         </div>
+        <div class="detail-panel" id="detail-downloads">
+            <div id="detailDownloadsList"></div>
+        </div>
         <div class="detail-panel" id="detail-manage">
-            <!-- Admin actions for this user -->
             <div class="manage-actions">
                 <div class="manage-row">
                     <input type="text" id="adminFolderName" class="form-input" placeholder="New folder name" style="flex:1;" />
                     <button class="btn btn-sm" onclick="adminCreateFolder()">Create Folder</button>
                 </div>
                 <div class="manage-row">
-                    <input type="file" id="adminFileInput" style="flex:1; font-size:13px;" />
+                    <input type="file" id="adminFileInput" style="flex:1;font-size:13px;" />
                     <button class="btn btn-sm" onclick="adminUploadFile()">Upload File</button>
                 </div>
             </div>
-            <div style="margin-top:14px; font-size:12px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+            <div style="margin-top:14px;font-size:12px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;padding-bottom:8px;border-bottom:1px solid var(--border);">
                 User's Files & Folders (click folder to browse)
             </div>
-            <!-- Breadcrumb for admin browsing -->
             <div class="admin-browse-bc" id="adminBrowseBc" style="display:none;"></div>
             <div class="detail-file-list" id="adminFilesList"></div>
         </div>
+
     </div>
 </div>
 

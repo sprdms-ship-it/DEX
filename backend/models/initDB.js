@@ -2,7 +2,6 @@ const db = require('../config/db');
 
 const initDB = async () => {
     try {
-        // ─── USERS ───
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -19,7 +18,6 @@ const initDB = async () => {
             )
         `);
 
-        // ─── ALLOWED USERS ───
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS allowed_users (
                 id TEXT PRIMARY KEY,
@@ -28,7 +26,6 @@ const initDB = async () => {
             )
         `);
 
-        // ─── DOMAINS ───
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS domains (
                 id TEXT PRIMARY KEY,
@@ -39,7 +36,6 @@ const initDB = async () => {
             )
         `);
 
-        // ─── OTPs ───
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS otps (
                 id TEXT PRIMARY KEY,
@@ -49,7 +45,6 @@ const initDB = async () => {
             )
         `);
 
-        // ─── FILES ───
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS files (
                 id TEXT PRIMARY KEY,
@@ -63,7 +58,6 @@ const initDB = async () => {
             )
         `);
 
-        // ─── PERMISSIONS ───
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS permissions (
                 id TEXT PRIMARY KEY,
@@ -75,7 +69,6 @@ const initDB = async () => {
             )
         `);
 
-        // ─── SHARE LINKS ───
         await db.pool.query(`
             CREATE TABLE IF NOT EXISTS share_links (
                 id TEXT PRIMARY KEY,
@@ -87,7 +80,18 @@ const initDB = async () => {
             )
         `);
 
-        // ─── SEED PRE-APPROVED SSO DOMAINS ───
+        // ─── DOWNLOAD LOGS ───
+        await db.pool.query(`
+            CREATE TABLE IF NOT EXISTS download_logs (
+                id TEXT PRIMARY KEY,
+                file_id TEXT,
+                file_name TEXT,
+                file_size BIGINT DEFAULT 0,
+                downloaded_by TEXT NOT NULL,
+                downloaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         await db.pool.query(`
             INSERT INTO domains (id, name, is_approved, created_by)
             VALUES ('sso-domain-1', 'shrirampistons.com', 1, 'system')
@@ -104,7 +108,6 @@ const initDB = async () => {
             ON CONFLICT (id) DO NOTHING
         `);
 
-        // ─── SEED DEFAULT ADMIN ───
         await db.pool.query(`
             INSERT INTO users (id, name, email, password, is_verified, role, domain)
             VALUES ('admin-001', 'Admin', 'admin@sprautotech.com', '$2b$10$WDnGW/AnZJ8ZY5rRaWa1auzWTV76AiuRTQuYIi/kPjxXojwl5MVY.', 1, 'admin', 'sprautotech.com')

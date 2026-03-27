@@ -321,9 +321,8 @@ exports.downloadFile = async (req, res) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // ✅ Normalize backslashes → forward slashes
+        // Normalize backslashes → forward slashes
         const normalizedPath = file.path.replace(/\\/g, '/');
-        console.log('normalized GCS path:', normalizedPath);
 
         const gcsFile = bucket.file(normalizedPath);
         const [exists] = await gcsFile.exists();
@@ -339,6 +338,17 @@ exports.downloadFile = async (req, res) => {
             expires: Date.now() + 15 * 60 * 1000,
             responseDisposition: `attachment; filename="${encodeURIComponent(file.name)}"`
         });
+
+        // ─── LOG THE DOWNLOAD (non-fatal) ───
+        try {
+            const { v4: uuidv4 } = require('uuid');
+            await db.runAsync(
+                `INSERT INTO download_logs (id, file_id, file_name, file_size, downloaded_by) VALUES (?, ?, ?, ?, ?)`,
+                [uuidv4(), file.id, file.name, file.size || 0, req.user.id]
+            );
+        } catch (logErr) {
+            console.error('Download log error (non-fatal):', logErr.message);
+        }
 
         res.json({ downloadUrl: signedUrl, name: file.name });
 

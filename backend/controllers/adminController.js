@@ -195,6 +195,61 @@ exports.updateStorageLimit = async (req, res) => {
     } catch (err) { console.error('updateStorageLimit error:', err); res.status(500).json({ message: 'Server error' }); }
 };
 
+// ─── GET DOWNLOAD LOGS FOR A USER ───
+exports.getUserDownloads = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const user = await db.getAsync(`SELECT id FROM users WHERE id = ?`, [userId]);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const logs = await db.allAsync(
+            `SELECT
+                dl.id,
+                dl.file_id,
+                dl.file_name,
+                dl.file_size,
+                dl.downloaded_at,
+                u.email AS downloaded_by_email,
+                u.name  AS downloaded_by_name
+             FROM download_logs dl
+             LEFT JOIN users u ON u.id = dl.downloaded_by
+             WHERE dl.downloaded_by = ?
+             ORDER BY dl.downloaded_at DESC`,
+            [userId]
+        );
+
+        res.json(logs);
+    } catch (err) {
+        console.error('getUserDownloads error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// ─── GET ALL DOWNLOAD LOGS ───
+exports.getAllDownloads = async (req, res) => {
+    try {
+        const logs = await db.allAsync(
+            `SELECT
+                dl.id,
+                dl.file_id,
+                dl.file_name,
+                dl.file_size,
+                dl.downloaded_at,
+                u.email AS downloaded_by_email,
+                u.name  AS downloaded_by_name
+             FROM download_logs dl
+             LEFT JOIN users u ON u.id = dl.downloaded_by
+             ORDER BY dl.downloaded_at DESC
+             LIMIT 500`,
+            []
+        );
+        res.json(logs);
+    } catch (err) {
+        console.error('getAllDownloads error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 exports.adminGetUserFiles = async (req, res) => {
     try {
         const files = await db.allAsync(`SELECT * FROM files WHERE owner_id = ? AND parent_id IS ? ORDER BY type DESC, created_at DESC`, [req.params.userId, req.query.parent_id || null]);
